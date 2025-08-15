@@ -12,14 +12,22 @@ namespace IndustrialSystems.Shared
 {
     public class ResourceModifier : IItemProducer, IItemConsumer
     {
-        public ResourceModifierDefinition Definition;
+        public readonly ResourceModifierDefinition Definition;
 
-        public IMyFunctionalBlock self;
+        public readonly IMyFunctionalBlock Self;
+        public IndustrialSystem ParentSystem;
 
         public Item InputItem;
         public Item OutputItem;
 
-        List<MyTerminalControlListBoxItem> UserSelections;
+        public readonly List<MyTerminalControlListBoxItem> UserSelections;
+
+        public ResourceModifier(ResourceModifierDefinition definition, IMyFunctionalBlock self)
+        {
+            Definition = definition;
+            Self = self;
+            UserSelections = new List<MyTerminalControlListBoxItem>();
+        }
 
         public bool AcceptItem(ref Item item)
         {
@@ -33,7 +41,8 @@ namespace IndustrialSystems.Shared
         {
             OutputItem = new Item(InputItem);
 
-            OutputItem.Amount = Definition.ModifierFunc.Invoke(ResourceVector.Map, OutputItem.Composition.Vector, OutputItem.Amount, UserSelections);
+            OutputItem.Amount = Definition.ModifierFunc.Invoke(ResourceVector.Map, 
+                OutputItem.Composition.Vector, OutputItem.Amount, UserSelections);
         }
 
         Item IItemProducer.GetProducedItem()

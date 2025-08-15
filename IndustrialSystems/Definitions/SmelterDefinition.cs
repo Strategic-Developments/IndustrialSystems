@@ -13,7 +13,7 @@ namespace IndustrialSystems.Definitions
         /// <summary>
         /// Maximum ores to smelt per second.
         /// </summary>
-        public uint MaxOresSmelted;
+        public int MaxOresSmelted;
         /// <summary>
         /// Default ore to ingot multiplier (Floor(MaxOresSmelted * OreMultiplier) = resulting ingot count)
         /// </summary>
@@ -48,7 +48,7 @@ namespace IndustrialSystems.Definitions
                 DefaultOreMultiplier = (float)data[3],
                 SmelterOreMultipliers = (Dictionary<string, float>)data[4],
                 PowerRequirementOverride = (float)data[5],
-                MaxOresSmelted = (uint)data[6],
+                MaxOresSmelted = (int)data[6],
             };
         }
     }

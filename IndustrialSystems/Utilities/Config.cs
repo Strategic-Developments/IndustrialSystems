@@ -185,7 +185,7 @@ namespace IndustrialSystems.Utilities
                     DefinitionPriority = 0,
                     PowerRequirementOverride = 1,
                     DefaultDrillSpeed = 0,
-                    MaterialDrillSpeed = new Dictionary<string, uint>()
+                    MaterialDrillSpeed = new Dictionary<string, int>()
                     {
                         ["Stone"] = 2,
                         ["Iron"] = 2,
@@ -237,7 +237,7 @@ namespace IndustrialSystems.Utilities
                     MaxSpeed = 1,
                     TypeToModify = ItemType.Ore,
                     UserOptionsFunc = DefinitionConstants.ShowNone(),
-                    ModifierFunc = DefinitionConstants.Crusher(efficiency: 0.95f, noneAdditive: -0.2f, noneMultiplicative: 0),
+                    ModifierFunc = DefinitionConstants.Crusher(efficiency: 0.95f, noneAdditive: -0.2f, noneMultiplicative: 0), // need better function argument names
                 },
                 ["is_purifier"] = new ResourceModifierDefinition
                 {
@@ -247,7 +247,7 @@ namespace IndustrialSystems.Utilities
                     MaxSpeed = 1,
                     TypeToModify = ItemType.Ore,
                     UserOptionsFunc = DefinitionConstants.ShowOresGiven(maxSelections: 1),
-                    ModifierFunc = DefinitionConstants.Purifier(efficiency: 0.95f, nonSelectedAdditive: 0, nonSelectedMultiplicative: 0),
+                    ModifierFunc = DefinitionConstants.Purifier(efficiency: 0.95f, nonSelectedAdditive: 0, nonSelectedMultiplicative: 0.25f), // need better function argument names
                 }
             };
         }

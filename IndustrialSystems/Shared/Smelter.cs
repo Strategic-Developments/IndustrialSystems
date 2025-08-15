@@ -12,14 +12,14 @@ namespace IndustrialSystems.Shared
 {
     public class Smelter : IItemConsumer, IItemProducer
     {
-        public SmelterDefinition Definition;
-        public ResourceVector Mask;
+        public readonly SmelterDefinition Definition;
 
+        public readonly IMyFunctionalBlock Self;
+        public IndustrialSystem ParentSystem;
+
+        public ResourceVector Mask;
         public Item MaterialBeingSmelted;
         public Item OutputItem;
-
-        public IMyFunctionalBlock Self;
-        public IndustrialSystem ParentSystem;
 
         public Smelter(SmelterDefinition definition, IMyFunctionalBlock self, IndustrialSystem parentSystem)
         {

@@ -13,23 +13,22 @@ using VRageMath;
 
 namespace IndustrialSystems.Shared
 {
-    using Material = VRage.MyTuple<MaterialDefinition, uint>;
+    using Material = VRage.MyTuple<MaterialDefinition, int>;
     public class Drill : IItemProducer
     {
-        public DrillDefinition Definition;
+        public readonly DrillDefinition Definition;
 
-        public IItemConsumer Consumer;
-
-        public IMyFunctionalBlock Self;
+        public readonly IMyFunctionalBlock Self;
         public IndustrialSystem ParentSystem;
 
+        public IItemConsumer Consumer;
         public bool CalculatingMaterials;
 
         public ResourceVector MaterialBeingMined;
         public bool IsProducing;
 
         public Material SelectedChoice;
-        public List<Material> UserChoices;
+        public readonly List<Material> UserChoices;
 
         public Drill(DrillDefinition definition, IMyFunctionalBlock self, IndustrialSystem parentSystem)
         {
@@ -37,6 +36,7 @@ namespace IndustrialSystems.Shared
             Self = self;
             ParentSystem = parentSystem;
             SelectedChoice = new Material(null, 0);
+            UserChoices = new List<Material>();
 
             IsProducing = false;
 
@@ -108,10 +108,10 @@ namespace IndustrialSystems.Shared
                     {
                         continue;
                     }
-                    uint miningSpeed;
+                    int miningSpeed;
                     if (!Definition.MaterialDrillSpeed.TryGetValue(d.SubtypeId, out miningSpeed))
                         miningSpeed = Definition.DefaultDrillSpeed;
-                    miningSpeed = (uint)(Math.Floor(miningSpeed * Definition.VoxelAmountMultiplier == 0 ? 1 :
+                    miningSpeed = (int)(Math.Floor(miningSpeed * Definition.VoxelAmountMultiplier == 0 ? 1 :
                         initialVoxelDict[m] * Definition.VoxelAmountMultiplier));
 
                     UserChoices.Add(new Material(d, miningSpeed));

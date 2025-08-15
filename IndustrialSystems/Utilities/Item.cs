@@ -14,7 +14,7 @@ namespace IndustrialSystems.Utilities
         private static readonly Dictionary<ushort, ResourceVector> _vectorMap = new Dictionary<ushort, ResourceVector>();
         private static readonly Dictionary<ResourceVector, ushort> _idMap = new Dictionary<ResourceVector, ushort>();
 
-        public uint Amount;
+        public int Amount;
         // internally store the item composition as a ushort which maps to a ResourceVector
         // might be overly complex, needs testing
         private ushort _composition;
@@ -35,7 +35,7 @@ namespace IndustrialSystems.Utilities
                 }
             }
         }
-        public Item(ItemType Type, uint Amount = 0, ushort Composition = 0)
+        public Item(ItemType Type, int Amount = 0, ushort Composition = 0)
         {
             this.Amount = Amount;
             this.Type = Type;
@@ -48,7 +48,7 @@ namespace IndustrialSystems.Utilities
             this._composition = toCopy._composition;
 
         }
-        public Item(ItemType Type, uint Amount, ResourceVector vec)
+        public Item(ItemType Type, int Amount, ResourceVector vec)
         {
             this.Amount = Amount;
             this.Type = Type;

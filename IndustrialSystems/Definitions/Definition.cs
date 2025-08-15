@@ -212,14 +212,14 @@ namespace IndustrialSystems.Definitions
         /// <param name="noneAdditive"></param>
         /// <param name="noneMultiplicative"></param>
         /// <returns></returns>
-        public static Func<Dictionary<string, byte>, float[], uint, List<MyTerminalControlListBoxItem>, uint> Crusher(float efficiency, float noneAdditive, float noneMultiplicative)
+        public static Func<Dictionary<string, byte>, float[], int, List<MyTerminalControlListBoxItem>, int> Crusher(float efficiency, float noneAdditive, float noneMultiplicative)
         {
-            return (Dictionary<string, byte> keys, float[] parts, uint initialAmount, List<MyTerminalControlListBoxItem> userSelections) =>
+            return (Dictionary<string, byte> keys, float[] parts, int initialAmount, List<MyTerminalControlListBoxItem> userSelections) =>
             {
                 byte index = keys["None"];
                 parts[index] = Math.Max(0, parts[index] * noneMultiplicative + noneAdditive);
                 float reduction = parts.SumNormalize() * efficiency;
-                return (uint)(Math.Floor(initialAmount * reduction));
+                return (int)(Math.Floor(initialAmount * reduction));
             };
         }
         /// <summary>
@@ -229,9 +229,9 @@ namespace IndustrialSystems.Definitions
         /// <param name="nonSelectedAdditive"></param>
         /// <param name="nonSelectedMultiplicative"></param>
         /// <returns></returns>
-        public static Func<Dictionary<string, byte>, float[], uint, List<MyTerminalControlListBoxItem>, uint> Purifier(float efficiency, float nonSelectedAdditive, float nonSelectedMultiplicative)
+        public static Func<Dictionary<string, byte>, float[], int, List<MyTerminalControlListBoxItem>, int> Purifier(float efficiency, float nonSelectedAdditive, float nonSelectedMultiplicative)
         {
-            return (Dictionary<string, byte> keys, float[] parts, uint initialAmount, List<MyTerminalControlListBoxItem> userSelections) =>
+            return (Dictionary<string, byte> keys, float[] parts, int initialAmount, List<MyTerminalControlListBoxItem> userSelections) =>
             {
                 foreach (var kvp in keys)
                 {
@@ -247,7 +247,7 @@ namespace IndustrialSystems.Definitions
                 }
                 float reduction = parts.SumNormalize() * efficiency;
 
-                return (uint)Math.Floor(initialAmount * reduction);
+                return (int)Math.Floor(initialAmount * reduction);
             };
         }
     }

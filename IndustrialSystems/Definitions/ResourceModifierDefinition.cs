@@ -17,7 +17,7 @@ namespace IndustrialSystems.Definitions
         /// <summary>
         /// Maximum input number of ores to process
         /// </summary>
-        public uint MaxSpeed;
+        public int MaxSpeed;
 
         /// <summary>
         /// <para>Dictionary&lt;string, byte&gt; - map from ore names to indexes in the float[]. DO NOT MODIFY!!!!</para>
@@ -34,7 +34,7 @@ namespace IndustrialSystems.Definitions
         /// <para>List&lt;string&gt; - list of actively user selected options</para>
         /// <para>return value - number of items post modification</para>
         /// </summary>
-        public Func<Dictionary<string, byte>, float[], uint, List<MyTerminalControlListBoxItem>, uint> ModifierFunc;
+        public Func<Dictionary<string, byte>, float[], int, List<MyTerminalControlListBoxItem>, int> ModifierFunc;
         public override object[] ConvertToObjectArray()
         {
             return new object[] {
@@ -60,8 +60,8 @@ namespace IndustrialSystems.Definitions
                 DefinitionPriority = (int)data[2],
                 PowerRequirementOverride = (float)data[3],
                 UserOptionsFunc = (Func<Dictionary<string, byte>, float[], List<MyTerminalControlListBoxItem>, int>)data[4],
-                ModifierFunc = (Func<Dictionary<string, byte>, float[], uint, List<MyTerminalControlListBoxItem>, uint>)data[5],
-                MaxSpeed = (uint)data[6],
+                ModifierFunc = (Func<Dictionary<string, byte>, float[], int, List<MyTerminalControlListBoxItem>, int>)data[5],
+                MaxSpeed = (int)data[6],
             };
         }
     }

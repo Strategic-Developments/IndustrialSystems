@@ -14,7 +14,7 @@ namespace IndustrialSystems.Definitions
         /// <summary>
         /// Number of ores to consume per second
         /// </summary>
-        public uint GasRefineSpeed;
+        public int GasRefineSpeed;
         /// <summary>
         /// Key: ore name
         /// Value: Gas resource name & amount

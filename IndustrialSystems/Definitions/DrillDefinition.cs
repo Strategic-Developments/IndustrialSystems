@@ -13,8 +13,8 @@ namespace IndustrialSystems.Definitions
         /// <summary>
         /// Ores per second
         /// </summary>
-        public uint DefaultDrillSpeed;
-        public Dictionary<string, uint> MaterialDrillSpeed;
+        public int DefaultDrillSpeed;
+        public Dictionary<string, int> MaterialDrillSpeed;
 
         /// <summary>
         /// set to zero to ignore
@@ -63,8 +63,8 @@ namespace IndustrialSystems.Definitions
             {
                 SubtypeId = (string)data[1],
                 DefinitionPriority = (int)data[2],
-                DefaultDrillSpeed = (uint)data[3],
-                MaterialDrillSpeed = (Dictionary<string, uint>)data[4],
+                DefaultDrillSpeed = (int)data[3],
+                MaterialDrillSpeed = (Dictionary<string, int>)data[4],
                 PowerRequirementOverride = (float)data[5],
                 InitialVoxelCheckSize = (float)data[6],
                 DownwardsVoxelCheckSize = (float)data[7],
