@@ -1,2 +1,0 @@
-# IndustrialSystems
-Industrial Systems
