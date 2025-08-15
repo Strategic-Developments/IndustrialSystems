@@ -10,7 +10,7 @@ using VRage.Game.ModAPI;
 
 namespace IndustrialSystems.Shared
 {
-    public class Smelter : IItemConsumer
+    public class Smelter : IItemConsumer, IItemProducer
     {
         public SmelterDefinition Definition;
         public ResourceVector Mask;
@@ -55,6 +55,11 @@ namespace IndustrialSystems.Shared
             composition.ElementMultiply(Mask);
 
             OutputItem.Composition = composition;
+        }
+
+        public Item GetProducedItem()
+        {
+            return OutputItem;
         }
     }
 }

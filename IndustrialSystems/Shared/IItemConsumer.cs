@@ -9,6 +9,11 @@ namespace IndustrialSystems.Shared
 {
     public interface IItemConsumer
     {
+        /// <summary>
+        /// Return true if item is fully consumed, false if not
+        /// </summary>
+        /// <param name="item"></param>
+        /// <returns></returns>
         bool AcceptItem(ref Item item);
     }
 }
