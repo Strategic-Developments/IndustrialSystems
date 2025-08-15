@@ -8,6 +8,7 @@ using IndustrialSystems.Utilities;
 
 namespace IndustrialSystems.Shared
 {
+    // needs a redo tbh
     public interface IItemProducer
     {
         Item GetProducedItem();

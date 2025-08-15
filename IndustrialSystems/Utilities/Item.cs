@@ -15,6 +15,8 @@ namespace IndustrialSystems.Utilities
         private static readonly Dictionary<ResourceVector, ushort> _idMap = new Dictionary<ResourceVector, ushort>();
 
         public uint Amount;
+        // internally store the item composition as a ushort which maps to a ResourceVector
+        // might be overly complex, needs testing
         private ushort _composition;
         public ItemType Type;
         public ResourceVector Composition
@@ -63,16 +65,6 @@ namespace IndustrialSystems.Utilities
         public override string ToString()
         {
             return $"{Amount}kg {Type} w/ Composition {_composition}:\n{Composition}";
-        }
-    }
-    public struct Fluid
-    {
-        public string GasName;
-        public uint Amount;
-
-        public override string ToString()
-        {
-            return $"{Amount}L of gas {GasName}";
         }
     }
 }

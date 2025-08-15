@@ -36,7 +36,7 @@ namespace IndustrialSystems.Definitions
         /// </summary>
         public int DefinitionPriority;
         /// <summary>
-        /// Internal use enum, don't worry about it
+        /// Need to use object[] because I don't want to make an API just to transfer delegates
         /// </summary>
         public abstract object[] ConvertToObjectArray();
     }
@@ -173,7 +173,12 @@ namespace IndustrialSystems.Definitions
 
             return ret;
         }
-        public static Func<Dictionary<string, byte>, float[], List<MyTerminalControlListBoxItem>, int> ShowOresGiven(int maxAmount)
+        /// <summary>
+        /// Show given ores in the list menu dropdown
+        /// </summary>
+        /// <param name="maxSelections">Maximum amount of selections users can make</param>
+        /// <returns></returns>
+        public static Func<Dictionary<string, byte>, float[], List<MyTerminalControlListBoxItem>, int> ShowOresGiven(int maxSelections)
         {
             return (Dictionary<string, byte> keys, float[] parts, List<MyTerminalControlListBoxItem> outUserSelections) =>
             {
@@ -186,10 +191,13 @@ namespace IndustrialSystems.Definitions
                             userData: str.Key));
                 }
 
-                return maxAmount;
+                return maxSelections;
             };
         }
-
+        /// <summary>
+        /// Show nothing in the list menu dropdown
+        /// </summary>
+        /// <returns></returns>
         public static Func<Dictionary<string, byte>, float[], List<MyTerminalControlListBoxItem>, int> ShowNone()
         {
             return (Dictionary<string, byte> keys, float[] parts, List<MyTerminalControlListBoxItem> outUserSelections) =>
@@ -197,7 +205,13 @@ namespace IndustrialSystems.Definitions
                 return 0;
             };
         }
-
+        /// <summary>
+        /// Have the ResourceModifier reduce "None" components of ores/ingots, with a general reduction in item ocunt based on eficiency. 1 = 100% efficient - Usable ore in = Usable ore out (ish, rounds)
+        /// </summary>
+        /// <param name="efficiency"></param>
+        /// <param name="noneAdditive"></param>
+        /// <param name="noneMultiplicative"></param>
+        /// <returns></returns>
         public static Func<Dictionary<string, byte>, float[], uint, List<MyTerminalControlListBoxItem>, uint> Crusher(float efficiency, float noneAdditive, float noneMultiplicative)
         {
             return (Dictionary<string, byte> keys, float[] parts, uint initialAmount, List<MyTerminalControlListBoxItem> userSelections) =>
@@ -208,7 +222,13 @@ namespace IndustrialSystems.Definitions
                 return (uint)(Math.Floor(initialAmount * reduction));
             };
         }
-
+        /// <summary>
+        /// Have the ResourceModifier reduce non selected components of ores/ingots, with a general reduction in item ocunt based on eficiency. 1 = 100% efficient - Usable ore in = Usable ore out (ish, rounds)
+        /// </summary>
+        /// <param name="efficiency"></param>
+        /// <param name="nonSelectedAdditive"></param>
+        /// <param name="nonSelectedMultiplicative"></param>
+        /// <returns></returns>
         public static Func<Dictionary<string, byte>, float[], uint, List<MyTerminalControlListBoxItem>, uint> Purifier(float efficiency, float nonSelectedAdditive, float nonSelectedMultiplicative)
         {
             return (Dictionary<string, byte> keys, float[] parts, uint initialAmount, List<MyTerminalControlListBoxItem> userSelections) =>

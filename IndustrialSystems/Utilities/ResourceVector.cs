@@ -11,6 +11,12 @@ using VRageMath;
 
 namespace IndustrialSystems.Utilities
 {
+    /// <summary>
+    /// As this is designed to work with modded ores, we can't use a fixed vector size
+    /// Map maps Ore names to indexes in the vector
+    /// Dictionary for every vector is wasteful as once the session is loaded we know how many ores there will be
+    /// If MyStringId is safe to use then all strings should probably be replaced with it
+    /// </summary>
     public class ResourceVector : IEnumerable
     {
         public static Dictionary<string, byte> Map;
@@ -130,8 +136,14 @@ namespace IndustrialSystems.Utilities
         }
         public float this[string key]
         {
-            get => Vector[Map[key]];
-            set => Vector[Map[key]] = value;
+            get
+            {
+                return Vector[Map[key]];
+            }
+            set
+            {
+                Vector[Map[key]] = value;
+            }
         }
 
         public override string ToString()

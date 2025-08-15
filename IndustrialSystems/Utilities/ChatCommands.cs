@@ -12,7 +12,7 @@ namespace IndustrialSystems.Utilities
     {
         public static ChatCommands Instance;
 
-        public const string ModName = "Nerd Shields";
+        public const string ModName = "Industrial Systems";
 
         private MyTuple<ulong, string[]> _lastCommandSent;
         public static MyTuple<ulong, string[]> LastCommandSent => Instance._lastCommandSent;

@@ -10,12 +10,17 @@ namespace IndustrialSystems.Definitions
 {
     public class MaterialDefinition : Definition
     {
+        /// <summary>
+        /// Name players will see for materials shown in terminals
+        /// </summary>
         public string DisplayName;
-
+        /// <summary>
+        /// If true, has this definition point to the voxel's MinedOre instead of its subtype.
+        /// </summary>
         public bool IsMinedOre;
 
         /// <summary>
-        /// Key: Ore
+        /// Key: Ore name (keen Ore subtype like Iron, Nickel, etc)
         /// Value: Percentage per ore
         /// "None" for empty space
         /// Values must sum to 1, if they aren't then they will be scaled to have the sum = 1

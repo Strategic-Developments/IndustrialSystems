@@ -3,15 +3,20 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms.VisualStyles;
+using VRage.ModAPI;
 using static IndustrialSystems.Definitions.DefinitionConstants;
 
 namespace IndustrialSystems.Definitions
 {
     public class ResourceModifierDefinition : PowerOverrideDefinition
     {
+        /// <summary>
+        /// Ore, or Ingot, will only accept the given type
+        /// </summary>
         public ItemType TypeToModify;
-       
+        /// <summary>
+        /// Maximum input number of ores to process
+        /// </summary>
         public uint MaxSpeed;
 
         /// <summary>
@@ -20,7 +25,7 @@ namespace IndustrialSystems.Definitions
         /// <para>List&lt;string&gt; - list of options to present the user - FILL THIS OUT</para>
         /// <para>return value - maximum number of user selections</para>
         /// </summary>
-        public Func<Dictionary<string, byte>, float[], List<string>, int> UserOptionsFunc;
+        public Func<Dictionary<string, byte>, float[], List<MyTerminalControlListBoxItem>, int> UserOptionsFunc;
 
         /// <summary>
         /// <para>Dictionary&lt;string, byte&gt; - map from ore names to indexes in the float[]. DO NOT MODIFY!!!!</para>
@@ -29,7 +34,7 @@ namespace IndustrialSystems.Definitions
         /// <para>List&lt;string&gt; - list of actively user selected options</para>
         /// <para>return value - number of items post modification</para>
         /// </summary>
-        public Func<Dictionary<string, byte>, float[], uint, List<string>, uint> ModifierFunc;
+        public Func<Dictionary<string, byte>, float[], uint, List<MyTerminalControlListBoxItem>, uint> ModifierFunc;
         public override object[] ConvertToObjectArray()
         {
             return new object[] {
@@ -54,8 +59,8 @@ namespace IndustrialSystems.Definitions
                 SubtypeId = (string)data[1],
                 DefinitionPriority = (int)data[2],
                 PowerRequirementOverride = (float)data[3],
-                UserOptionsFunc = (Func<Dictionary<string, byte>, float[], List<string>, int>)data[4],
-                ModifierFunc = (Func<Dictionary<string, byte>, float[], uint, List<string>, uint>)data[5],
+                UserOptionsFunc = (Func<Dictionary<string, byte>, float[], List<MyTerminalControlListBoxItem>, int>)data[4],
+                ModifierFunc = (Func<Dictionary<string, byte>, float[], uint, List<MyTerminalControlListBoxItem>, uint>)data[5],
                 MaxSpeed = (uint)data[6],
             };
         }

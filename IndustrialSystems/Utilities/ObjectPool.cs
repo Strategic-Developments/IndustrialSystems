@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 namespace IndustrialSystems.Utilities
 {
+    // Credit to aristeas for this
+    
     /// <summary>
     /// Thread-safe object pool with automatic factory, preparer, and cleaner.
     /// </summary>

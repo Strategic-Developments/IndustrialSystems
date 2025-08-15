@@ -203,9 +203,9 @@ namespace IndustrialSystems.Utilities
                 {
                     SubtypeId = "is_smelter",
                     DefinitionPriority = 0,
-                    PowerOverride = 1,
+                    PowerRequirementOverride = 1,
                     DefaultOreMultiplier = 0,
-                    OreSmeltSpeed = 1,
+                    MaxOresSmelted = 1,
                     SmelterOreMultipliers = new Dictionary<string, float>()
                     {
                         ["Stone"] = 1,
@@ -231,7 +231,23 @@ namespace IndustrialSystems.Utilities
                 },
                 ["is_crusher"] = new ResourceModifierDefinition
                 {
-                    
+                    SubtypeId = "is_crusher",
+                    DefinitionPriority = 0,
+                    PowerRequirementOverride = 1,
+                    MaxSpeed = 1,
+                    TypeToModify = ItemType.Ore,
+                    UserOptionsFunc = DefinitionConstants.ShowNone(),
+                    ModifierFunc = DefinitionConstants.Crusher(efficiency: 0.95f, noneAdditive: -0.2f, noneMultiplicative: 0),
+                },
+                ["is_purifier"] = new ResourceModifierDefinition
+                {
+                    SubtypeId = "is_purifier",
+                    DefinitionPriority = 0,
+                    PowerRequirementOverride = 1,
+                    MaxSpeed = 1,
+                    TypeToModify = ItemType.Ore,
+                    UserOptionsFunc = DefinitionConstants.ShowOresGiven(maxSelections: 1),
+                    ModifierFunc = DefinitionConstants.Purifier(efficiency: 0.95f, nonSelectedAdditive: 0, nonSelectedMultiplicative: 0),
                 }
             };
         }

@@ -22,9 +22,21 @@ namespace IndustrialSystems.Definitions
         /// </summary>
         public float VoxelAmountMultiplier;
 
+        /// <summary>
+        /// Cube side length, centered on block origin to check for voxels. If the check passes then it will do downwards cube checks based on other variables. All voxels seen are compiled into a list for users to choose from.
+        /// </summary>
         public float InitialVoxelCheckSize;
+        /// <summary>
+        ///  Cube side length, centered on downard check origin
+        /// </summary>
         public float DownwardsVoxelCheckSize;
+        /// <summary>
+        /// Distance between cube voxel checks
+        /// </summary>
         public float DownwardVoxelCheckSizeInterval;
+        /// <summary>
+        /// Number of downward cube voxel checks
+        /// </summary>
         public int DownwardVoxelCheckSizeAmount;
         public override object[] ConvertToObjectArray()
         {

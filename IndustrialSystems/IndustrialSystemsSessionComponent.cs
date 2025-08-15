@@ -42,7 +42,7 @@ using IndustrialSystems.Shared;
 
 namespace IndustrialSystems
 {
-    [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation)]
+    [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, Priority = int.MinValue)]
     public class IndustrialSystemsSessionComponent : MySessionComponentBase
     {
         public static IndustrialSystemsSessionComponent Instance;

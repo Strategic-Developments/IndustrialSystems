@@ -8,12 +8,21 @@ using static IndustrialSystems.Definitions.DefinitionConstants;
 
 namespace IndustrialSystems.Definitions
 {
-    public class SmelterDefinition : Definition
+    public class SmelterDefinition : PowerOverrideDefinition
     {
+        /// <summary>
+        /// Maximum ores to smelt per second.
+        /// </summary>
         public uint MaxOresSmelted;
+        /// <summary>
+        /// Default ore to ingot multiplier (Floor(MaxOresSmelted * OreMultiplier) = resulting ingot count)
+        /// </summary>
         public float DefaultOreMultiplier;
+        /// <summary>
+        /// Key: Ore name (keen Ore subtype like Iron, Nickel, etc)
+        /// Value: Alternate multiplier for the given ore
+        /// </summary>
         public Dictionary<string, float> SmelterOreMultipliers;
-        public float PowerOverride;
         public override object[] ConvertToObjectArray()
         {
             return new object[] {
@@ -22,6 +31,7 @@ namespace IndustrialSystems.Definitions
                 DefinitionPriority,
                 DefaultOreMultiplier,
                 SmelterOreMultipliers,
+                PowerRequirementOverride,
                 MaxOresSmelted,
             };
         }
@@ -37,7 +47,7 @@ namespace IndustrialSystems.Definitions
                 DefinitionPriority = (int)data[2],
                 DefaultOreMultiplier = (float)data[3],
                 SmelterOreMultipliers = (Dictionary<string, float>)data[4],
-                PowerOverride = (float)data[5],
+                PowerRequirementOverride = (float)data[5],
                 MaxOresSmelted = (uint)data[6],
             };
         }

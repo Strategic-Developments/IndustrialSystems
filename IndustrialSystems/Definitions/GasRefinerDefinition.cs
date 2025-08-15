@@ -11,7 +11,14 @@ namespace IndustrialSystems.Definitions
 {
     public class GasRefinerDefinition : PowerOverrideDefinition
     {
-        public float GasRefineSpeed;
+        /// <summary>
+        /// Number of ores to consume per second
+        /// </summary>
+        public uint GasRefineSpeed;
+        /// <summary>
+        /// Key: ore name
+        /// Value: Gas resource name & amount
+        /// </summary>
         public Dictionary<string, FluidDefinition[]> RefineOresToGas;
         
         public override object[] ConvertToObjectArray()
@@ -37,7 +44,7 @@ namespace IndustrialSystems.Definitions
                 DefinitionPriority = (int)data[2],
                 RefineOresToGas = (Dictionary<string, FluidDefinition[]>)data[3],
                 PowerRequirementOverride = (float)data[4],
-                GasRefineSpeed = (float)data[5],
+                GasRefineSpeed = (uint)data[5],
             };
         }
     }
