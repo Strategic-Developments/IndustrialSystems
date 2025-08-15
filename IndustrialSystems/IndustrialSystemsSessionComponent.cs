@@ -70,7 +70,7 @@ namespace IndustrialSystems
         {
             
         }
-        private void OnNetworkMessageRecieved(ushort ChannelId, Packet packet, ulong SenderId, bool fromServer)
+        private void OnNetworkMessageRecieved(Packet packet, ulong SenderId, bool fromServer)
         {
             
         }
