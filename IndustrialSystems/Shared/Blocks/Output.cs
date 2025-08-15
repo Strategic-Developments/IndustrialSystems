@@ -1,5 +1,6 @@
 ﻿using IndustrialSystems.Definitions;
 using IndustrialSystems.Utilities;
+using IndustrialSystems.Shared.Interfaces;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,7 @@ using VRage.ModAPI;
 using VRage.ObjectBuilders;
 using KeenItem = VRage.MyTuple<VRage.MyFixedPoint, VRage.Game.MyObjectBuilder_PhysicalObject>;
 
-namespace IndustrialSystems.Shared
+namespace IndustrialSystems.Shared.Blocks
 {
     public class Output : IItemConsumer
     {

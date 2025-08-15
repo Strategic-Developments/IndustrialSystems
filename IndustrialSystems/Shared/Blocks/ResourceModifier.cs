@@ -1,5 +1,6 @@
 ﻿using IndustrialSystems.Definitions;
 using IndustrialSystems.Utilities;
+using IndustrialSystems.Shared.Interfaces;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
@@ -8,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VRage.ModAPI;
 
-namespace IndustrialSystems.Shared
+namespace IndustrialSystems.Shared.Blocks
 {
     public class ResourceModifier : IItemProducer, IItemConsumer
     {

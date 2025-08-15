@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace IndustrialSystems.Shared
+namespace IndustrialSystems.Shared.Interfaces
 {
     public interface IItemConsumer
     {

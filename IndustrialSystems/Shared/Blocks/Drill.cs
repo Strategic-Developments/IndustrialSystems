@@ -1,5 +1,6 @@
 ﻿using IndustrialSystems.Definitions;
 using IndustrialSystems.Utilities;
+using IndustrialSystems.Shared.Interfaces;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
@@ -11,7 +12,7 @@ using VRage.Voxels;
 using VRageMath;
 
 
-namespace IndustrialSystems.Shared
+namespace IndustrialSystems.Shared.Blocks
 {
     using Material = VRage.MyTuple<MaterialDefinition, int>;
     public class Drill : IItemProducer

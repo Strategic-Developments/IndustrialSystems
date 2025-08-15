@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using IndustrialSystems.Definitions;
 using IndustrialSystems.Utilities;
 
-namespace IndustrialSystems.Shared
+namespace IndustrialSystems.Shared.Interfaces
 {
     // needs a redo tbh
     public interface IItemProducer
