@@ -10,14 +10,12 @@ namespace IndustrialSystems.Definitions
 {
     public class OutputDefinition : Definition
     {
-        public int InventoryToDepositIn;
         public override object[] ConvertToObjectArray()
         {
             return new object[] {
-                ISTypes.Drill,
+                ISTypes.Output,
                 SubtypeId,
                 DefinitionPriority,
-                InventoryToDepositIn,
             };
         }
 
@@ -30,8 +28,6 @@ namespace IndustrialSystems.Definitions
             {
                 SubtypeId = (string)data[1],
                 DefinitionPriority = (int)data[2],
-                InventoryToDepositIn = (int)data[3],
-
             };
         }
     }

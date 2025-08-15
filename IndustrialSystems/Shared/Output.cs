@@ -32,7 +32,7 @@ namespace IndustrialSystems.Shared
 
             ItemsToAdd = new List<KeenItem>();
 
-            DepositInventory = self.GetInventory(definition.InventoryToDepositIn);
+            DepositInventory = self.GetInventory(0);
         }
 
 

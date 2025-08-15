@@ -178,9 +178,9 @@ namespace IndustrialSystems.Definitions
         /// </summary>
         /// <param name="maxSelections">Maximum amount of selections users can make</param>
         /// <returns></returns>
-        public static Func<Dictionary<string, byte>, float[], List<MyTerminalControlListBoxItem>, int> ShowOresGiven(int maxSelections)
+        public static Func<IReadOnlyDictionary<string, byte>, float[], List<MyTerminalControlListBoxItem>, int> ShowOresGiven(int maxSelections)
         {
-            return (Dictionary<string, byte> keys, float[] parts, List<MyTerminalControlListBoxItem> outUserSelections) =>
+            return (IReadOnlyDictionary<string, byte> keys, float[] parts, List<MyTerminalControlListBoxItem> outUserSelections) =>
             {
                 foreach (var str in keys)
                 {
@@ -198,9 +198,9 @@ namespace IndustrialSystems.Definitions
         /// Show nothing in the list menu dropdown
         /// </summary>
         /// <returns></returns>
-        public static Func<Dictionary<string, byte>, float[], List<MyTerminalControlListBoxItem>, int> ShowNone()
+        public static Func<IReadOnlyDictionary<string, byte>, float[], List<MyTerminalControlListBoxItem>, int> ShowNone()
         {
-            return (Dictionary<string, byte> keys, float[] parts, List<MyTerminalControlListBoxItem> outUserSelections) =>
+            return (IReadOnlyDictionary<string, byte> keys, float[] parts, List<MyTerminalControlListBoxItem> outUserSelections) =>
             {
                 return 0;
             };
@@ -212,9 +212,9 @@ namespace IndustrialSystems.Definitions
         /// <param name="noneAdditive"></param>
         /// <param name="noneMultiplicative"></param>
         /// <returns></returns>
-        public static Func<Dictionary<string, byte>, float[], int, List<MyTerminalControlListBoxItem>, int> Crusher(float efficiency, float noneAdditive, float noneMultiplicative)
+        public static Func<IReadOnlyDictionary<string, byte>, float[], int, List<MyTerminalControlListBoxItem>, int> Crusher(float efficiency, float noneAdditive, float noneMultiplicative)
         {
-            return (Dictionary<string, byte> keys, float[] parts, int initialAmount, List<MyTerminalControlListBoxItem> userSelections) =>
+            return (IReadOnlyDictionary<string, byte> keys, float[] parts, int initialAmount, List<MyTerminalControlListBoxItem> userSelections) =>
             {
                 byte index = keys["None"];
                 parts[index] = Math.Max(0, parts[index] * noneMultiplicative + noneAdditive);
@@ -229,9 +229,9 @@ namespace IndustrialSystems.Definitions
         /// <param name="nonSelectedAdditive"></param>
         /// <param name="nonSelectedMultiplicative"></param>
         /// <returns></returns>
-        public static Func<Dictionary<string, byte>, float[], int, List<MyTerminalControlListBoxItem>, int> Purifier(float efficiency, float nonSelectedAdditive, float nonSelectedMultiplicative)
+        public static Func<IReadOnlyDictionary<string, byte>, float[], int, List<MyTerminalControlListBoxItem>, int> Purifier(float efficiency, float nonSelectedAdditive, float nonSelectedMultiplicative)
         {
-            return (Dictionary<string, byte> keys, float[] parts, int initialAmount, List<MyTerminalControlListBoxItem> userSelections) =>
+            return (IReadOnlyDictionary<string, byte> keys, float[] parts, int initialAmount, List<MyTerminalControlListBoxItem> userSelections) =>
             {
                 foreach (var kvp in keys)
                 {

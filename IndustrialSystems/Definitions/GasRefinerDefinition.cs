@@ -44,7 +44,7 @@ namespace IndustrialSystems.Definitions
                 DefinitionPriority = (int)data[2],
                 RefineOresToGas = (Dictionary<string, FluidDefinition[]>)data[3],
                 PowerRequirementOverride = (float)data[4],
-                GasRefineSpeed = (uint)data[5],
+                GasRefineSpeed = (int)data[5],
             };
         }
     }

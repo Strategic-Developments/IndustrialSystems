@@ -20,25 +20,25 @@ namespace IndustrialSystems.Definitions
         public int MaxSpeed;
 
         /// <summary>
-        /// <para>Dictionary&lt;string, byte&gt; - map from ore names to indexes in the float[]. DO NOT MODIFY!!!!</para>
+        /// <para>Dictionary&lt;string, byte&gt; - map from ore names to indexes in the float[].</para>
         /// <para>float[] - resource vector; basically the item's composition. Recommended to not modify.</para>
         /// <para>List&lt;string&gt; - list of options to present the user - FILL THIS OUT</para>
         /// <para>return value - maximum number of user selections</para>
         /// </summary>
-        public Func<Dictionary<string, byte>, float[], List<MyTerminalControlListBoxItem>, int> UserOptionsFunc;
+        public Func<IReadOnlyDictionary<string, byte>, float[], List<MyTerminalControlListBoxItem>, int> UserOptionsFunc;
 
         /// <summary>
-        /// <para>Dictionary&lt;string, byte&gt; - map from ore names to indexes in the float[]. DO NOT MODIFY!!!!</para>
+        /// <para>Dictionary&lt;string, byte&gt; - map from ore names to indexes in the float[].</para>
         /// <para>float[] - resource vector; basically the item's composition. Modify this to change item comp</para>
         /// <para>uint - number of items</para>
         /// <para>List&lt;string&gt; - list of actively user selected options</para>
         /// <para>return value - number of items post modification</para>
         /// </summary>
-        public Func<Dictionary<string, byte>, float[], int, List<MyTerminalControlListBoxItem>, int> ModifierFunc;
+        public Func<IReadOnlyDictionary<string, byte>, float[], int, List<MyTerminalControlListBoxItem>, int> ModifierFunc;
         public override object[] ConvertToObjectArray()
         {
             return new object[] {
-                ISTypes.Drill,
+                ISTypes.ResourceModifier,
                 SubtypeId,
                 DefinitionPriority,
                 UserOptionsFunc,
@@ -59,8 +59,8 @@ namespace IndustrialSystems.Definitions
                 SubtypeId = (string)data[1],
                 DefinitionPriority = (int)data[2],
                 PowerRequirementOverride = (float)data[3],
-                UserOptionsFunc = (Func<Dictionary<string, byte>, float[], List<MyTerminalControlListBoxItem>, int>)data[4],
-                ModifierFunc = (Func<Dictionary<string, byte>, float[], int, List<MyTerminalControlListBoxItem>, int>)data[5],
+                UserOptionsFunc = (Func<IReadOnlyDictionary<string, byte>, float[], List<MyTerminalControlListBoxItem>, int>)data[4],
+                ModifierFunc = (Func<IReadOnlyDictionary<string, byte>, float[], int, List<MyTerminalControlListBoxItem>, int>)data[5],
                 MaxSpeed = (int)data[6],
             };
         }
