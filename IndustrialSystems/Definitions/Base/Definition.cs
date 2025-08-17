@@ -7,16 +7,18 @@ using VRage.Game;
 using VRage.Game.Components;
 using VRage.ModAPI;
 using VRage.Utils;
+using VRage;
 
 namespace IndustrialSystems.Definitions
 {
-    public enum ItemType : byte
+    using TerminalControlText = MyTuple<string, string, string>;
+    
+
+    public interface IPackagable
     {
-        None = 0,
-        Ore = 1,
-        Ingot = 3,
+        object[] ConvertToObjectArray();
     }
-    public abstract class Definition
+    public abstract class Definition : IPackagable
     {
         /// <summary>
         /// Subtype ID of the block or material, or mined ore.
@@ -41,7 +43,7 @@ namespace IndustrialSystems.Definitions
         public abstract object[] ConvertToObjectArray();
     }
 
-    public abstract class PowerOverrideDefinition : Definition
+    public abstract class BlockMachineDefinition : Definition
     {
         /// <summary>
         /// If not zero, overrides the block's power requirement to this value in MW.
@@ -53,7 +55,13 @@ namespace IndustrialSystems.Definitions
         /// </para>
         /// </summary>
         public float PowerRequirementOverride;
+
+        /// <summary>
+        /// Max number of items before machine stops accepting/producing more.
+        /// </summary>
+        public int MaxItemsInInventory;
     }
+
     public static class DefinitionConstants
     {
         public const long MessageHandlerId = 10481;
@@ -69,6 +77,13 @@ namespace IndustrialSystems.Definitions
             GasRefiner,
             Output,
             Material,
+        }
+
+        public enum ItemType : byte
+        {
+            None = 0,
+            Ore = 1,
+            Ingot = 3,
         }
         /// <summary>
         /// Normalizes the array's sum to 1
@@ -178,17 +193,18 @@ namespace IndustrialSystems.Definitions
         /// </summary>
         /// <param name="maxSelections">Maximum amount of selections users can make</param>
         /// <returns></returns>
-        public static Func<IReadOnlyDictionary<string, byte>, float[], List<MyTerminalControlListBoxItem>, int> ShowOresGiven(int maxSelections)
+        public static Func<IReadOnlyDictionary<string, byte>, float[], List<TerminalControlText>, int> ShowOresGiven(int maxSelections)
         {
-            return (IReadOnlyDictionary<string, byte> keys, float[] parts, List<MyTerminalControlListBoxItem> outUserSelections) =>
+            return (IReadOnlyDictionary<string, byte> keys, float[] parts, List<TerminalControlText> outUserSelections) =>
             {
                 foreach (var str in keys)
                 {
                     outUserSelections.Add(
-                        new MyTerminalControlListBoxItem(
-                            text: MyStringId.GetOrCompute(str.Key), 
-                            tooltip: MyStringId.GetOrCompute($"{parts[str.Value]*100:##.####}%"), 
-                            userData: str.Key));
+                        new TerminalControlText(
+                            str.Key, // user text
+                            $"{parts[str.Value] * 100:##.####}%", // user tooltip
+                            str.Key // object
+                            ));
                 }
 
                 return maxSelections;
@@ -198,23 +214,23 @@ namespace IndustrialSystems.Definitions
         /// Show nothing in the list menu dropdown
         /// </summary>
         /// <returns></returns>
-        public static Func<IReadOnlyDictionary<string, byte>, float[], List<MyTerminalControlListBoxItem>, int> ShowNone()
+        public static Func<IReadOnlyDictionary<string, byte>, float[], List<TerminalControlText>, int> ShowNone()
         {
-            return (IReadOnlyDictionary<string, byte> keys, float[] parts, List<MyTerminalControlListBoxItem> outUserSelections) =>
+            return (IReadOnlyDictionary<string, byte> keys, float[] parts, List<TerminalControlText> outUserSelections) =>
             {
                 return 0;
             };
         }
         /// <summary>
-        /// Have the ResourceModifier reduce "None" components of ores/ingots, with a general reduction in item ocunt based on eficiency. 1 = 100% efficient - Usable ore in = Usable ore out (ish, rounds)
+        /// Have the ResourceModifier reduce "None" components of ores/ingots, with a general reduction in item ocunt based on efficiency. 1 = 100% efficient - Usable ore in = Usable ore out (ish, rounds)
         /// </summary>
         /// <param name="efficiency"></param>
         /// <param name="noneAdditive"></param>
         /// <param name="noneMultiplicative"></param>
         /// <returns></returns>
-        public static Func<IReadOnlyDictionary<string, byte>, float[], int, List<MyTerminalControlListBoxItem>, int> Crusher(float efficiency, float noneAdditive, float noneMultiplicative)
+        public static Func<IReadOnlyDictionary<string, byte>, float[], int, List<string>, int> Crusher(float efficiency, float noneAdditive, float noneMultiplicative)
         {
-            return (IReadOnlyDictionary<string, byte> keys, float[] parts, int initialAmount, List<MyTerminalControlListBoxItem> userSelections) =>
+            return (IReadOnlyDictionary<string, byte> keys, float[] parts, int initialAmount, List<string> userSelections) =>
             {
                 byte index = keys["None"];
                 parts[index] = Math.Max(0, parts[index] * noneMultiplicative + noneAdditive);
@@ -223,21 +239,21 @@ namespace IndustrialSystems.Definitions
             };
         }
         /// <summary>
-        /// Have the ResourceModifier reduce non selected components of ores/ingots, with a general reduction in item ocunt based on eficiency. 1 = 100% efficient - Usable ore in = Usable ore out (ish, rounds)
+        /// Have the ResourceModifier reduce non selected components of ores/ingots, with a general reduction in item ocunt based on efficiency. 1 = 100% efficient - Usable ore in = Usable ore out (ish, rounds)
         /// </summary>
         /// <param name="efficiency"></param>
         /// <param name="nonSelectedAdditive"></param>
         /// <param name="nonSelectedMultiplicative"></param>
         /// <returns></returns>
-        public static Func<IReadOnlyDictionary<string, byte>, float[], int, List<MyTerminalControlListBoxItem>, int> Purifier(float efficiency, float nonSelectedAdditive, float nonSelectedMultiplicative)
+        public static Func<IReadOnlyDictionary<string, byte>, float[], int, List<string>, int> Purifier(float efficiency, float nonSelectedAdditive, float nonSelectedMultiplicative)
         {
-            return (IReadOnlyDictionary<string, byte> keys, float[] parts, int initialAmount, List<MyTerminalControlListBoxItem> userSelections) =>
+            return (IReadOnlyDictionary<string, byte> keys, float[] parts, int initialAmount, List<string> userSelections) =>
             {
                 foreach (var kvp in keys)
                 {
                     foreach (var item in userSelections)
                     {
-                        if (((string)item.UserData) == kvp.Key)
+                        if (item == kvp.Key)
                         {
                             byte index = keys["None"];
                             parts[index] = Math.Max(0, parts[index] * nonSelectedMultiplicative + nonSelectedAdditive);

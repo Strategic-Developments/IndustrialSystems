@@ -1,4 +1,4 @@
-﻿using IndustrialSystems.Definitions;
+﻿using IndustrialSystems.IndustrialSystems.Definitions.Structs;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -30,6 +30,8 @@ namespace IndustrialSystems.Utilities
         {
             this.Vector = new float[Map.Count];
             vector.CopyTo(this.Vector, 0);
+
+            
         }
         public ResourceVector(Dictionary<string, float> kvps)
         {

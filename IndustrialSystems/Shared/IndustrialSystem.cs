@@ -1,4 +1,5 @@
-﻿using IndustrialSystems.Utilities;
+﻿using IndustrialSystems.Shared.Interfaces;
+using IndustrialSystems.Utilities;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
@@ -14,10 +15,119 @@ namespace IndustrialSystems.Shared
     public class IndustrialSystem
     {
         public int ModularId;
-        
+
+        public List<ConveyorLine> AllConveyorLines;
+        public List<ConveyorLine> BackConveyorLines;
+
         public IndustrialSystem(int modularId)
         {
             this.ModularId = modularId;
+        }
+        
+        public void UpdateConveyors()
+        {
+            MyAPIGateway.Parallel.ForEach(BackConveyorLines, (conv) =>
+            {
+                // todo: make this an option
+                const ushort ItemSize = 16;
+
+                int iter = 0;
+                ConveyorLine currentConv = conv;
+
+                do
+                {
+                    if (iter++ >= ushort.MaxValue) // arbitrary value to stop infinite loop
+                        throw new Exception();
+
+                    for (int i = 0; i < currentConv.Items.Count; i++)
+                    {
+                        var item = currentConv.Items[i];
+
+                        
+                        if (item.Distance > ItemSize)
+                        {
+                            item.Distance--;
+                            currentConv.DistanceToInsertAtStart++;
+                            currentConv.Items[i] = item;
+                            break;
+                        }
+
+                        if (currentConv.Destination == null)
+                            continue;
+
+
+                        var nextBlock = currentConv.Destination;
+
+                        if (nextBlock is IItemConsumer)
+                        {
+                            var consumer = (IItemConsumer)nextBlock;
+
+                            if (consumer.CanAcceptItem(item.Item))
+                            {
+                                if (item.Distance > 0)
+                                {
+                                    item.Distance--;
+                                    currentConv.DistanceToInsertAtStart++;
+                                    currentConv.Items[i] = item;
+                                }
+                                else
+                                {
+                                    consumer.AcceptItem(item.Item);
+
+                                    currentConv.Items.RemoveAt(i);
+                                    i--;
+                                }
+                                break;
+                            }
+                        }
+
+                        ConveyorLine nextConv = (ConveyorLine)nextBlock;
+
+                        if (nextConv.DistanceToInsertAtStart == 0)
+                            continue;
+
+                        if (item.Distance > 0)
+                        {
+                            item.Distance--;
+                            currentConv.DistanceToInsertAtStart++;
+                            currentConv.Items[i] = item;
+                        }
+                        else
+                        {
+                            item.Distance = nextConv.DistanceToInsertAtStart;
+                            nextConv.DistanceToInsertAtStart = 0;
+                            nextConv.Items.Add(item);
+
+                            currentConv.Items.RemoveAt(i);
+                            i--;
+                        }
+                        break;
+                    }
+
+                    if (currentConv.Start == null)
+                    {
+                        break;
+                    }
+                    else if (currentConv.Start is IItemProducer
+                            && currentConv.DistanceToInsertAtStart > ItemSize)
+                    {
+                        IItemProducer prod = (IItemProducer)currentConv.Start;
+
+                        Item itemToAdd;
+                        if (prod.GetNextItemFor(currentConv, out itemToAdd))
+                        {
+                            currentConv.Items.Add(new ConveyorItem(
+                                itemToAdd,
+                                currentConv.DistanceToInsertAtStart
+                                ));
+
+                            currentConv.DistanceToInsertAtStart = 0;
+                        }
+                    }
+                    currentConv = currentConv.Start as ConveyorLine;
+                }
+                while (currentConv != null);
+            });
         }
 
         

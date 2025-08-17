@@ -15,45 +15,56 @@ using VRageMath;
 namespace IndustrialSystems.Shared.Blocks
 {
     using Material = VRage.MyTuple<MaterialDefinition, int>;
-    public class Drill : IItemProducer
+    public class Drill : ISBlock<IMyFunctionalBlock>, IItemProducer
     {
         public readonly DrillDefinition Definition;
 
-        public readonly IMyFunctionalBlock Self;
-        public IndustrialSystem ParentSystem;
-
-        public IItemConsumer Consumer;
         public bool CalculatingMaterials;
 
         public ResourceVector MaterialBeingMined;
-        public bool IsProducing;
+        public bool HasOreSelected;
 
         public Material SelectedChoice;
         public readonly List<Material> UserChoices;
 
-        public Drill(DrillDefinition definition, IMyFunctionalBlock self, IndustrialSystem parentSystem)
+        public int NextBatchCounter;
+        public InventoryItem OutputItem;
+
+        public Drill(DrillDefinition definition, IMyFunctionalBlock self, IndustrialSystem parentSystem) : base(self, parentSystem) 
         {
             Definition = definition;
-            Self = self;
-            ParentSystem = parentSystem;
             SelectedChoice = new Material(null, 0);
             UserChoices = new List<Material>();
 
-            IsProducing = false;
+            HasOreSelected = false;
 
             Self.AppendingCustomInfo += CustomInfo;
 
             MyAPIGateway.Parallel.StartBackground(CalculateAvailableMaterials);
         }
+
+        public override void Update()
+        {
+            if (Self.IsWorking && HasOreSelected && OutputItem.Amount < Definition.MaxItemsInInventory)
+            {
+                NextBatchCounter--;
+
+                if (NextBatchCounter <= 0)
+                {
+                    NextBatchCounter = Definition.TimeBetweenBatches;
+                    OutputItem.Amount += SelectedChoice.Item2;
+                }
+            }
+        }
         public void SelectMaterial(string mat)
         {
-            IsProducing = false;
+            HasOreSelected = false;
             foreach (var choice in UserChoices)
             {
                 if (choice.Item1.SubtypeId == mat)
                 {
                     SelectedChoice = choice;
-                    IsProducing = true;
+                    HasOreSelected = true;
                     break;
                 }
             }
@@ -64,7 +75,7 @@ namespace IndustrialSystems.Shared.Blocks
         private void CustomInfo(IMyTerminalBlock block, StringBuilder builder)
         {
             builder.Append($"\nDrill Information:\n");
-            if (IsProducing)
+            if (HasOreSelected)
             {
 
                 builder.Append($"Currently producing {SelectedChoice.Item1.DisplayName} at {SelectedChoice.Item2}/s\n");
@@ -110,8 +121,8 @@ namespace IndustrialSystems.Shared.Blocks
                         continue;
                     }
                     int miningSpeed;
-                    if (!Definition.MaterialDrillSpeed.TryGetValue(d.SubtypeId, out miningSpeed))
-                        miningSpeed = Definition.DefaultDrillSpeed;
+                    if (!Definition.OresPerBatchPerMaterial.TryGetValue(d.SubtypeId, out miningSpeed))
+                        miningSpeed = Definition.DefaultOresPerBatch;
                     miningSpeed = (int)(Math.Floor(miningSpeed * Definition.VoxelAmountMultiplier == 0 ? 1 :
                         initialVoxelDict[m] * Definition.VoxelAmountMultiplier));
 
@@ -137,7 +148,7 @@ namespace IndustrialSystems.Shared.Blocks
 
         private void GetVoxelsInScope(Vector3D pos, float size, MyVoxelBase map, Dictionary<byte, int> foundMaterials)
         {
-            const int LOD = 0;
+            const int LOD = 0; // the trolling is immense with this one
 
             Vector3D posMin = pos - size;
             Vector3D posMax = pos + size;
@@ -169,9 +180,17 @@ namespace IndustrialSystems.Shared.Blocks
             }
         }
 
-        Item IItemProducer.GetProducedItem()
+        public bool GetNextItemFor(IIndustrialSystemMachine machine, out Item item)
         {
-            return new Item(ItemType.Ore, SelectedChoice.Item2, MaterialBeingMined);
+            if (OutputItem.Amount > 0 && !OutputItem.Item.IsInvalid())
+            {
+                item = OutputItem.Item;
+                OutputItem.Amount--;
+                return true;
+            }
+
+            item = Item.CreateInvalid();
+            return false;
         }
     }
 }

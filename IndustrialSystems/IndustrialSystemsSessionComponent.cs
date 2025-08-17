@@ -36,9 +36,9 @@ using Sandbox.Game.GameSystems;
 using System.Data;
 using IndustrialSystems.Utilities;
 using IndustrialSystems.Networking;
-using IndustrialSystems.Definitions;
 using Sandbox.Game.Entities.Cube;
 using IndustrialSystems.Shared;
+using IndustrialSystems.IndustrialSystems.Definitions.Structs;
 
 namespace IndustrialSystems
 {

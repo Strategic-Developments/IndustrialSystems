@@ -8,14 +8,20 @@ using static IndustrialSystems.Definitions.DefinitionConstants;
 
 namespace IndustrialSystems.Definitions
 {
-    public class SmelterDefinition : PowerOverrideDefinition
+    public class SmelterDefinition : BlockMachineDefinition
     {
         /// <summary>
-        /// Maximum ores to smelt per second.
+        /// Minimum input number of items required to process, and will consume that amount.
         /// </summary>
-        public int MaxOresSmelted;
+        public int BatchAmount;
+
         /// <summary>
-        /// Default ore to ingot multiplier (Floor(MaxOresSmelted * OreMultiplier) = resulting ingot count)
+        /// Time it takes in ticks for one batch to be processed and output
+        /// </summary>
+        public int BatchSpeedTicks;
+
+        /// <summary>
+        /// Default ore to ingot resource multiplier
         /// </summary>
         public float DefaultOreMultiplier;
         /// <summary>
@@ -32,7 +38,9 @@ namespace IndustrialSystems.Definitions
                 DefaultOreMultiplier,
                 SmelterOreMultipliers,
                 PowerRequirementOverride,
-                MaxOresSmelted,
+                BatchAmount,
+                BatchSpeedTicks,
+                MaxItemsInInventory,
             };
         }
 
@@ -48,7 +56,9 @@ namespace IndustrialSystems.Definitions
                 DefaultOreMultiplier = (float)data[3],
                 SmelterOreMultipliers = (Dictionary<string, float>)data[4],
                 PowerRequirementOverride = (float)data[5],
-                MaxOresSmelted = (int)data[6],
+                BatchAmount = (int)data[6],
+                BatchSpeedTicks = (int)data[7],
+                MaxItemsInInventory = (int)data[8],
             };
         }
     }

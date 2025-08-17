@@ -7,9 +7,8 @@ using System.Threading.Tasks;
 
 namespace IndustrialSystems.Shared.Interfaces
 {
-    public interface IItemConsumer : IIndustrialSystemMachine
+    public interface IIndustrialSystemMachine // we love polymorphism
     {
-        bool CanAcceptItem(Item item);
-        void AcceptItem(Item item);
+
     }
 }

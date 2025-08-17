@@ -10,7 +10,7 @@ namespace IndustrialSystems.Utilities
     public struct Fluid
     {
         public string GasName;
-        public uint Amount;
+        public int Amount;
 
         public override string ToString()
         {

@@ -1,4 +1,5 @@
 ﻿using IndustrialSystems.Definitions;
+using IndustrialSystems.IndustrialSystems.Definitions.Structs;
 using Sandbox.Definitions;
 using System;
 using System.Collections.Generic;
@@ -184,20 +185,28 @@ namespace IndustrialSystems.Utilities
                     SubtypeId = "is_drill",
                     DefinitionPriority = 0,
                     PowerRequirementOverride = 1,
-                    DefaultDrillSpeed = 0,
-                    MaterialDrillSpeed = new Dictionary<string, int>()
+                    DefaultOresPerBatch = 0,
+                    OresPerBatchPerMaterial = new Dictionary<string, int>()
                     {
                         ["Stone"] = 2,
                         ["Iron"] = 2,
                         ["Nickel"] = 2,
                         ["Cobalt"] = 1,
                     },
-                    InitialVoxelCheckSize = 25,
+                    DrillVoxelChecks = new DrillDefinition.VoxelCheckDef
+                    {
+                        InitialVoxelCheckSize = 25,
 
-                    DownwardsVoxelCheckSize = 250,
-                    DownwardVoxelCheckSizeAmount = 1,
-                    DownwardVoxelCheckSizeInterval = 60,
+                        DownwardsVoxelCheckSize = 250,
+                        DownwardVoxelCheckSizeAmount = 1,
+                        DownwardVoxelCheckSizeInterval = 60,
+                    },
+                    GasRequirements = new GasReqDef
+                    {
                     
+                    },
+                    MaxItemsInInventory = 1,
+                    TimeBetweenBatches = 1,
                 },
                 ["is_smelter"] = new SmelterDefinition
                 {
@@ -205,7 +214,7 @@ namespace IndustrialSystems.Utilities
                     DefinitionPriority = 0,
                     PowerRequirementOverride = 1,
                     DefaultOreMultiplier = 0,
-                    MaxOresSmelted = 1,
+                    BatchAmount = 1,
                     SmelterOreMultipliers = new Dictionary<string, float>()
                     {
                         ["Stone"] = 1,
@@ -234,7 +243,7 @@ namespace IndustrialSystems.Utilities
                     SubtypeId = "is_crusher",
                     DefinitionPriority = 0,
                     PowerRequirementOverride = 1,
-                    MaxSpeed = 1,
+                    BatchAmount = 1,
                     TypeToModify = ItemType.Ore,
                     UserOptionsFunc = DefinitionConstants.ShowNone(),
                     ModifierFunc = DefinitionConstants.Crusher(efficiency: 0.95f, noneAdditive: -0.2f, noneMultiplicative: 0), // need better function argument names
@@ -244,7 +253,7 @@ namespace IndustrialSystems.Utilities
                     SubtypeId = "is_purifier",
                     DefinitionPriority = 0,
                     PowerRequirementOverride = 1,
-                    MaxSpeed = 1,
+                    BatchAmount = 1,
                     TypeToModify = ItemType.Ore,
                     UserOptionsFunc = DefinitionConstants.ShowOresGiven(maxSelections: 1),
                     ModifierFunc = DefinitionConstants.Purifier(efficiency: 0.95f, nonSelectedAdditive: 0, nonSelectedMultiplicative: 0.25f), // need better function argument names

@@ -8,59 +8,86 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VRage.Game.ModAPI;
+using IndustrialSystems.IndustrialSystems.Definitions.Structs;
 
 namespace IndustrialSystems.Shared.Blocks
 {
-    public class Smelter : IItemConsumer, IItemProducer
+    public class Smelter : ISBlock<IMyFunctionalBlock>, IItemConsumer, IItemProducer
     {
         public readonly SmelterDefinition Definition;
 
-        public readonly IMyFunctionalBlock Self;
-        public IndustrialSystem ParentSystem;
-
         public ResourceVector Mask;
-        public Item MaterialBeingSmelted;
-        public Item OutputItem;
+        public InventoryItem InputItem;
+        public InventoryItem OutputItem;
 
-        public Smelter(SmelterDefinition definition, IMyFunctionalBlock self, IndustrialSystem parentSystem)
+        public int NextItemCounter;
+
+        public Smelter(SmelterDefinition definition, IMyFunctionalBlock self, IndustrialSystem parentSystem) : base (self, parentSystem)
         {
             Definition = definition;
-            Self = self;
-            ParentSystem = parentSystem;
+
+            InputItem = new InventoryItem(Item.CreateInvalid(), 0);
+            OutputItem = new InventoryItem(Item.CreateInvalid(), 0);
 
             Mask = new ResourceVector(definition.SmelterOreMultipliers, definition.DefaultOreMultiplier);
         }
 
-        bool IItemConsumer.AcceptItem(ref Item item)
+        public override void Update()
         {
-            if (item.Amount > Definition.MaxOresSmelted)
+            if (InputItem.Amount > Definition.BatchAmount)
             {
-                MaterialBeingSmelted = new Item(item);
-                MaterialBeingSmelted.Amount = Definition.MaxOresSmelted;
-                item.Amount -= Definition.MaxOresSmelted;
-                RecalculateOutput();
-                return false;
+                NextItemCounter--;
+
+                if (NextItemCounter <= 0)
+                {
+                    NextItemCounter = Definition.BatchSpeedTicks;
+
+                    OutputItem.Amount += Definition.BatchAmount;
+                }
             }
-            
-            MaterialBeingSmelted = item;
-            RecalculateOutput();
-            return true;
         }
 
         public void RecalculateOutput()
         {
-            OutputItem = new Item(MaterialBeingSmelted);
-            OutputItem.Type = ItemType.Ingot;
+            OutputItem.Item = new Item(InputItem.Item);
+            OutputItem.Item.Type = DefinitionConstants.ItemType.Ingot;
 
-            var composition = MaterialBeingSmelted.Composition.Copy();
+            var composition = InputItem.Item.Composition.Copy();
             composition.ElementMultiply(Mask);
 
-            OutputItem.Composition = composition;
+            OutputItem.Item.Composition = composition;
         }
 
-        public Item GetProducedItem()
+        bool IItemConsumer.CanAcceptItem(Item item)
         {
-            return OutputItem;
+            return (InputItem.Amount == 0 && item.Type == DefinitionConstants.ItemType.Ore) || item.Equals(InputItem.Item);
+        }
+
+        void IItemConsumer.AcceptItem(Item item)
+        {
+            if (InputItem.Amount == 0)
+            {
+                InputItem.Item = new Item(item);
+                InputItem.Amount = 1;
+                RecalculateOutput();
+            }
+            else
+            {
+                InputItem.Amount++;
+            }
+        }
+
+        bool IItemProducer.GetNextItemFor(IIndustrialSystemMachine machine, out Item item)
+        {
+            if (OutputItem.Amount == 0)
+            {
+                item = Item.CreateInvalid();
+                return false;
+            }
+
+            item = OutputItem.Item;
+            OutputItem.Amount--;
+            return true;
         }
     }
 }

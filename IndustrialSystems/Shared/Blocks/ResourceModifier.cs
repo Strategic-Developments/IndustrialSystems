@@ -11,44 +11,77 @@ using VRage.ModAPI;
 
 namespace IndustrialSystems.Shared.Blocks
 {
-    public class ResourceModifier : IItemProducer, IItemConsumer
+    public class ResourceModifier : ISBlock<IMyFunctionalBlock>, IItemConsumer, IItemProducer
     {
         public readonly ResourceModifierDefinition Definition;
 
-        public readonly IMyFunctionalBlock Self;
-        public IndustrialSystem ParentSystem;
+        public InventoryItem InputItem;
+        public InventoryItem OutputItem;
+        private int NumberToOutputPerBatch;
 
-        public Item InputItem;
-        public Item OutputItem;
+        public readonly List<string> UserSelections;
 
-        public readonly List<MyTerminalControlListBoxItem> UserSelections;
+        public int NextItemCounter;
 
-        public ResourceModifier(ResourceModifierDefinition definition, IMyFunctionalBlock self)
+        public ResourceModifier(ResourceModifierDefinition definition, IMyFunctionalBlock self, IndustrialSystem parentSystem) : base (self, parentSystem)
         {
             Definition = definition;
-            Self = self;
-            UserSelections = new List<MyTerminalControlListBoxItem>();
+            UserSelections = new List<string>();
+
+            InputItem = new InventoryItem(Item.CreateInvalid(), 0);
+            OutputItem = new InventoryItem(Item.CreateInvalid(), 0);
         }
 
-        public bool AcceptItem(ref Item item)
+        public override void Update()
         {
-            InputItem = item;
+            if (InputItem.Amount > Definition.BatchAmount)
+            {
+                NextItemCounter--;
 
-            RecalculateItem();
-            return true;
+                if (NextItemCounter <= 0)
+                {
+                    NextItemCounter = Definition.BatchSpeedTicks;
+
+                    OutputItem.Amount += NumberToOutputPerBatch;
+                }
+            }
         }
 
-        public void RecalculateItem()
+        public void RecomputeOutputItem()
         {
-            OutputItem = new Item(InputItem);
+            ResourceVector v = InputItem.Item.Composition.Copy();
+            NumberToOutputPerBatch = Definition.ModifierFunc.Invoke(ResourceVector.Map,
+                v.Vector, Definition.BatchAmount, UserSelections);
 
-            OutputItem.Amount = Definition.ModifierFunc.Invoke(ResourceVector.Map, 
-                OutputItem.Composition.Vector, OutputItem.Amount, UserSelections);
+            OutputItem.Item = new Item(Definition.TypeToModify, v);
         }
 
-        Item IItemProducer.GetProducedItem()
+        bool IItemConsumer.CanAcceptItem(Item item)
         {
-            return new Item();
+            return (InputItem.Amount == 0 && item.Type == Definition.TypeToModify) || item.Equals(InputItem.Item);
+        }
+
+        void IItemConsumer.AcceptItem(Item item)
+        {
+            if (InputItem.Amount == 0 && !InputItem.Item.Equals(item))
+            {
+                InputItem.Item = item;
+                RecomputeOutputItem();
+            }
+            InputItem.Amount++;
+        }
+
+        bool IItemProducer.GetNextItemFor(IIndustrialSystemMachine machine, out Item item)
+        {
+            if (OutputItem.Amount > 0 && !OutputItem.Item.IsInvalid())
+            {
+                item = OutputItem.Item;
+                OutputItem.Amount--;
+                return true;
+            }
+
+            item = Item.CreateInvalid();
+            return false;
         }
     }
 }

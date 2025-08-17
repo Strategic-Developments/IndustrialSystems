@@ -9,12 +9,17 @@ using FluidDefinition = VRage.MyTuple<string, float>;
 
 namespace IndustrialSystems.Definitions
 {
-    public class GasRefinerDefinition : PowerOverrideDefinition
+    public class GasRefinerDefinition : BlockMachineDefinition
     {
         /// <summary>
-        /// Number of ores to consume per second
+        /// Minimum input number of ores required to process, and will consume that amount.
         /// </summary>
-        public int GasRefineSpeed;
+        public int BatchAmount;
+
+        /// <summary>
+        /// Time it takes in ticks for one batch to be processed and output
+        /// </summary>
+        public int BatchSpeedTicks;
         /// <summary>
         /// Key: ore name
         /// Value: Gas resource name & amount
@@ -29,7 +34,9 @@ namespace IndustrialSystems.Definitions
                 DefinitionPriority,
                 RefineOresToGas,
                 PowerRequirementOverride,
-                GasRefineSpeed,
+                BatchAmount,
+                BatchSpeedTicks,
+                MaxItemsInInventory,
             };
         }
 
@@ -44,7 +51,9 @@ namespace IndustrialSystems.Definitions
                 DefinitionPriority = (int)data[2],
                 RefineOresToGas = (Dictionary<string, FluidDefinition[]>)data[3],
                 PowerRequirementOverride = (float)data[4],
-                GasRefineSpeed = (int)data[5],
+                BatchAmount = (int)data[5],
+                BatchSpeedTicks = (int)data[6],
+                MaxItemsInInventory = (int)data[7],
             };
         }
     }

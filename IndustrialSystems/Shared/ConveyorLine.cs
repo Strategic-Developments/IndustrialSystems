@@ -1,30 +1,23 @@
-﻿using IndustrialSystems.Utilities;
+﻿using IndustrialSystems.Shared.Interfaces;
+using IndustrialSystems.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VRage.Game.ModAPI;
 using VRageMath;
 
 namespace IndustrialSystems.Shared
 {
-    public class ConveyorLine : IItemConsumer, IItemProducer
+    public class ConveyorLine : IIndustrialSystemMachine
     {
-        public Item Item;
+        public IIndustrialSystemMachine Destination;
+        public IIndustrialSystemMachine Start;
 
-        public IItemProducer Start;
-        public List<Vector3I> Path;
-        public IItemConsumer End;
-        
-        bool IItemConsumer.AcceptItem(ref Item item)
-        {
-            Item = item;
-            return true;
-        }
+        public List<IMyCubeBlock> Path;
+        public List<ConveyorItem> Items;
 
-        Item IItemProducer.GetProducedItem()
-        {
-            return Item;
-        }
+        public ushort DistanceToInsertAtStart;
     }
 }
