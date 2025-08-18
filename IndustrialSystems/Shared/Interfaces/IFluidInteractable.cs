@@ -10,6 +10,9 @@ namespace IndustrialSystems.Shared.Interfaces
     public interface IFluidInteractable : IIndustrialSystemMachine
     {
         bool CanAcceptFluid(string fluidName);
-        void EqualizeFluidWith(ref FluidContainer incomingPipe);
+
+        FluidContainer GetFluidContainer(string fluidName);
+
+        void EqualizeFluid(string fluidName, float fillAmount);
     }
 }
