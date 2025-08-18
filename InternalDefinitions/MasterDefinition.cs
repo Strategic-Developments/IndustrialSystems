@@ -17,7 +17,7 @@ namespace ISDefinitions
                 // put all block definitions here
 
                 Template_Drill,
-                Template_GasRefiner,
+                //Template_GasRefiner,
                 Template_OutputCargo,
                 Template_Crusher,
                 Template_Purifier,

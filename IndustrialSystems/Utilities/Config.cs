@@ -24,7 +24,10 @@ namespace IndustrialSystems.Utilities
                 ConveyorLineDefinitions = new Dictionary<string, ConveyorDefinition>()
             };
         }
-
+        public static void Unload()
+        {
+            I = null;
+        }
         public void InitializeResourceVector()
         {
             foreach (var voxeldef in MaterialVoxelDefinitions.Values.Union(MaterialOreDefinitions.Values))

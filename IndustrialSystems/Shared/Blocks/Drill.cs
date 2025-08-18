@@ -42,7 +42,10 @@ namespace IndustrialSystems.Shared.Blocks
 
             MyAPIGateway.Parallel.StartBackground(CalculateAvailableMaterials);
         }
-
+        public override void Close()
+        {
+            Self.AppendingCustomInfo -= CustomInfo;
+        }
         public override void Update()
         {
             if (Self.IsWorking && HasOreSelected && OutputItem.Amount < Definition.MachineInventory.MaxItemsInInventory)
@@ -75,10 +78,17 @@ namespace IndustrialSystems.Shared.Blocks
         private void CustomInfo(IMyTerminalBlock block, StringBuilder builder)
         {
             builder.Append($"\nDrill Information:\n");
+
+            if (CalculatingMaterials)
+            {
+                builder.Append($"Scanning.\n");
+                return;
+            }
+
             if (HasOreSelected)
             {
 
-                builder.Append($"Currently producing {SelectedChoice.Item1.Material.DisplayName} at {SelectedChoice.Item2}/s\n");
+                builder.Append($"Currently producing {SelectedChoice.Item1.Material.DisplayName} at {SelectedChoice.Item2} per {Definition.DrillBatches.TimeBetweenBatches} ticks.\n");
                 builder.Append($"Ore Material Properties:\n");
                 SelectedChoice.Item1.AppendMaterialProperties(builder);
             }
@@ -86,6 +96,9 @@ namespace IndustrialSystems.Shared.Blocks
                 builder.Append($"Not producing anything - Select an option from the terminal menu.\n");
             else
                 builder.Append($"Not producing anything - No voxels found.\n");
+
+            builder.Append($"\nInventory Information:\n");
+            OutputItem.AppendInventoryInformation(builder);
         }
         public void CalculateAvailableMaterials()
         {

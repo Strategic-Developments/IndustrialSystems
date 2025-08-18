@@ -31,8 +31,22 @@ namespace IndustrialSystems.Shared.Blocks
 
             InputItem = new InventoryItem(Item.CreateInvalid(), 0);
             OutputItem = new InventoryItem(Item.CreateInvalid(), 0);
+
+            Self.AppendingCustomInfo += CustomInfo;
         }
 
+        private void CustomInfo(IMyTerminalBlock block, StringBuilder builder)
+        {
+            builder.Append($"\nInput Inventory Information:\n");
+            InputItem.AppendInventoryInformation(builder);
+            builder.Append($"Output Inventory Information:\n");
+            OutputItem.AppendInventoryInformation(builder);
+        }
+
+        public override void Close()
+        {
+            Self.AppendingCustomInfo -= CustomInfo;
+        }
         public override void Update()
         {
             if (InputItem.Amount > Definition.BatchJob.BatchAmount)

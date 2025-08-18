@@ -35,7 +35,10 @@ namespace IndustrialSystems.Shared.Blocks
 
             DepositInventory = self.GetInventory(0);
         }
-        
+        public override void Close()
+        {
+
+        }
         private void FillItemsToAdd<TObj>(ref Item item) where TObj : MyObjectBuilder_PhysicalObject, new()
         {
             foreach (var kvp in ResourceVector.Map)

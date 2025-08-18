@@ -66,11 +66,11 @@ namespace IndustrialSystems.Definitions
         {
             return new object[] {
                 ISTypes.ResourceModifier,
-                Base,
-                MachineInventory,
-                BatchJob,
-                Modifier,
-                GasRequirements,
+                Base.ConvertToObjectArray(),
+                MachineInventory.ConvertToObjectArray(),
+                BatchJob.ConvertToObjectArray(),
+                Modifier.ConvertToObjectArray(),
+                GasRequirements.ConvertToObjectArray(),
             };
         }
 

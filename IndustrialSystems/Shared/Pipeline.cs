@@ -24,5 +24,15 @@ namespace IndustrialSystems.Shared
             StoredFluid = FluidContainer.CreateInvalid();
             DistanceToInsertAtStart = 0;
         }
+
+        public void Close()
+        {
+            
+        }
+
+        public bool IsBlockAPartOf(IMyCubeBlock block)
+        {
+            return Path.Contains(block);
+        }
     }
 }

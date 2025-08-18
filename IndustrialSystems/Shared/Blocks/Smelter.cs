@@ -29,8 +29,21 @@ namespace IndustrialSystems.Shared.Blocks
             OutputItem = new InventoryItem(Item.CreateInvalid(), 0);
 
             Mask = new ResourceVector(definition.SmelterStats.SmelterOreMultipliers, definition.SmelterStats.DefaultOreMultiplier);
+
+            Self.AppendingCustomInfo += CustomInfo;
+        }
+        private void CustomInfo(IMyTerminalBlock block, StringBuilder builder)
+        {
+            builder.Append($"\nInput Inventory Information:\n");
+            InputItem.AppendInventoryInformation(builder);
+            builder.Append($"Output Inventory Information:\n");
+            OutputItem.AppendInventoryInformation(builder);
         }
 
+        public override void Close()
+        {
+            Self.AppendingCustomInfo -= CustomInfo;
+        }
         public override void Update()
         {
             if (InputItem.Amount > Definition.BatchJob.BatchAmount)

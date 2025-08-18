@@ -30,5 +30,22 @@ namespace IndustrialSystems.Shared
 
             DistanceToInsertAtStart = 0;
         }
+
+        public void Close()
+        {
+            if (Start != null && Start is ConveyorLine)
+            {
+                ((ConveyorLine)Start).Destination = null;
+            }
+            if (Destination != null && Destination is ConveyorLine)
+            {
+                ((ConveyorLine)Destination).Start = null;
+            }
+        }
+
+        public bool IsBlockAPartOf(IMyCubeBlock block)
+        {
+            return Path.Contains(block);
+        }
     }
 }

@@ -59,7 +59,7 @@ namespace IndustrialSystems.Definitions
         public override object[] ConvertToObjectArray()
         {
             return new object[] {
-                ISTypes.Material,
+                ISTypes.Conveyor,
                 Base.ConvertToObjectArray(),
                 Conveyors.ConvertToObjectArray(),
             };
@@ -91,6 +91,10 @@ namespace IndustrialSystems.Definitions
                 Defs[index] = value;
             }
         }
+        public ConveyorDefinitions()
+        {
+            Defs = new List<ConveyorDefinition>();
+        }
         public override object[] ConvertToObjectArray()
         {
             object[] arr = new object[Defs.Count];
@@ -98,7 +102,7 @@ namespace IndustrialSystems.Definitions
                 arr[i] = Defs[i].ConvertToObjectArray();
 
             return new object[] {
-                ISTypes.Conveyor,
+                ISTypes.ConveyorArray,
                 arr
             };
         }
@@ -112,7 +116,7 @@ namespace IndustrialSystems.Definitions
             List<ConveyorDefinition> list = new List<ConveyorDefinition>(dataArray.Length);
 
             for (int i = 0; i < dataArray.Length; i++)
-                list[i] = ConveyorDefinition.ConvertFromObjectArray((object[])dataArray[i]);
+                list.Add(ConveyorDefinition.ConvertFromObjectArray((object[])dataArray[i]));
 
             return new ConveyorDefinitions()
             {
@@ -132,6 +136,7 @@ namespace IndustrialSystems.Definitions
 
         public void Add(ConveyorDefinition material)
         {
+            
             Defs.Add(material);
         }
     }

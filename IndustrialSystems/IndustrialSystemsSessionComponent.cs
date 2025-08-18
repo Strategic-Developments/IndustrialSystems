@@ -64,10 +64,12 @@ namespace IndustrialSystems
             IndustrialSystemManager.Load();
             Network.Load();
             Config.Load();
+            ChatCommands.Load();
 
             Network.OnMessageReceived += OnNetworkMessageRecieved;
             MyAPIGateway.Utilities.RegisterMessageHandler(MessageHandlerId, OnModMessageRecieved);
 
+            ModularApi = new ModularDefinitionApi();
             ModularApi.Init(ModContext, null);
             
         }
@@ -77,6 +79,23 @@ namespace IndustrialSystems
 
             if (!ModularApi.IsReady)
                 throw new Exception();
+
+            Dictionary<string, Dictionary<Vector3I, string[]>> AllowedConnections = new Dictionary<string, Dictionary<Vector3I, string[]>>();
+
+            foreach (var blockdef in Config.I.BlockDefinitions.Values)
+            {
+                if (blockdef is ConveyorDefinition)
+                {
+                    var conveyordef = (ConveyorDefinition)blockdef;
+                    var connections = new Dictionary<Vector3I, string[]>();
+
+                    foreach (var connection in conveyordef.Conveyors.Connections)
+                        connections[connection] = Array.Empty<string>();
+
+                    AllowedConnections.Add(conveyordef.Base.SubtypeId, connections);
+                }
+            }
+
 
             ModularApi.RegisterDefinitions(new HiAristeas
             {
@@ -113,39 +132,14 @@ namespace IndustrialSystems
                         // Allowed connection directions & whitelists, measured in blocks.
                         // If an allowed SubtypeId is not included here, connections are allowed on all sides.
                         // If the connection type whitelist is empty, all allowed subtypes may connect on that side.
-                        AllowedConnections = new Dictionary<string, Dictionary<Vector3I, string[]>>
-                        {
-                            ["is_large_conveyor"] = new Dictionary<Vector3I, string[]>
-                            {
-                                // In this definition, a small reactor can only connect on faces with conveyors.
-                                [Vector3I.Up] = Array.Empty<string>(), // Build Info is really handy for checking directions.
-                                [Vector3I.Down] = Array.Empty<string>(),
-                            },
-                            ["is_large_conveyor_corner"] = new Dictionary<Vector3I, string[]>
-                            {
-                                // In this definition, a small reactor can only connect on faces with conveyors.
-                                [Vector3I.Backward] = Array.Empty<string>(), // Build Info is really handy for checking directions.
-                                [Vector3I.Down] = Array.Empty<string>(),
-                            },
-                            ["is_large_conveyor_t"] = new Dictionary<Vector3I, string[]>
-                            {
-                                // In this definition, a small reactor can only connect on faces with conveyors.
-                                [Vector3I.Left] = Array.Empty<string>(), // Build Info is really handy for checking directions.
-                                [Vector3I.Right] = Array.Empty<string>(),
-                                [Vector3I.Down] = Array.Empty<string>(),
-                            },
-                            ["is_large_conveyor_x"] = new Dictionary<Vector3I, string[]>
-                            {
-                                // In this definition, a small reactor can only connect on faces with conveyors.
-                                [Vector3I.Left] = Array.Empty<string>(), // Build Info is really handy for checking directions.
-                                [Vector3I.Right] = Array.Empty<string>(),
-                                [Vector3I.Up] = Array.Empty<string>(),
-                                [Vector3I.Down] = Array.Empty<string>(),
-                            },
-                        },
+                        AllowedConnections = AllowedConnections,
                     }
                 }
             });
+        }
+        public override void BeforeStart()
+        {
+            ChatCommands.ShowMessage($"Loaded {Config.I.BlockDefinitions.Count} block definitions, and {Config.I.MaterialVoxelDefinitions.Count + Config.I.MaterialOreDefinitions.Count} material definitions.");
         }
         // Priority should ensure these are all called between LoadData and Init
         private void OnModMessageRecieved(object obj)
@@ -225,7 +219,10 @@ namespace IndustrialSystems
         {
             MyAPIGateway.Utilities.UnregisterMessageHandler(MessageHandlerId, OnModMessageRecieved);
             Network.OnMessageReceived -= OnNetworkMessageRecieved;
+            IndustrialSystemManager.Unload();
             Network.Unload();
+            Config.Unload();
+            ChatCommands.Unload();
             Instance = null;
         }
         public override void SaveData()

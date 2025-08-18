@@ -28,7 +28,10 @@ namespace IndustrialSystems.Shared.Blocks
             Item = Item.CreateInvalid();
             Incoming = new ConveyorLine[MergerDef.Connections.Length];
         }
-
+        public override void Close()
+        {
+            
+        }
         public void AcceptItem(Item item)
         {
             Item = item;

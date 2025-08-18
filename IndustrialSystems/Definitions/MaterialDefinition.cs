@@ -95,6 +95,10 @@ namespace IndustrialSystems.Definitions
                 Defs[index] = value;
             }
         }
+        public MaterialDefinitions()
+        {
+            Defs = new List<MaterialDefinition>();
+        }
         public override object[] ConvertToObjectArray()
         {
             object[] arr = new object[Defs.Count];
@@ -116,7 +120,7 @@ namespace IndustrialSystems.Definitions
             List<MaterialDefinition> list = new List<MaterialDefinition>(dataArray.Length);
 
             for (int i = 0; i < dataArray.Length; i++)
-                list[i] = MaterialDefinition.ConvertFromObjectArray((object[])dataArray[i]);
+                list.Add(MaterialDefinition.ConvertFromObjectArray((object[])dataArray[i]));
 
             return new MaterialDefinitions()
             {

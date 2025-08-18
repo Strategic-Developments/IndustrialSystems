@@ -20,8 +20,7 @@ namespace IndustrialSystems.Shared.Blocks
             this.Self = Self;
             this.ParentSystem = ParentSystem;
         }
-
-        protected virtual void Close()
+        public virtual void Close()
         {
             
         }
@@ -29,6 +28,11 @@ namespace IndustrialSystems.Shared.Blocks
         public virtual void Update()
         {
 
+        }
+
+        public bool IsBlockAPartOf(IMyCubeBlock block)
+        {
+            return (IMyCubeBlock)Self == block;
         }
     }
 }

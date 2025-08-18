@@ -113,6 +113,12 @@ namespace IndustrialSystems.Utilities
             Item = item;
             Amount = amount;
         }
+
+        public void AppendInventoryInformation(StringBuilder sb)
+        {
+            sb.Append($"{Amount}kg of {Item}\n");
+        }
+
         bool IEquatable<InventoryItem>.Equals(InventoryItem other)
         {
             return Amount == other.Amount && Item.Equals(other.Item);

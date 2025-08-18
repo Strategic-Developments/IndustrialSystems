@@ -57,8 +57,8 @@ namespace ISDefinitions
                 {
                     Connections = new[]
                     {
-                        Vector3I.Forward,
-                        Vector3I.Up,
+                        Vector3I.Backward,
+                        Vector3I.Right,
                     },
                     ConvertToSplitter = false,
                     ItemTravelFrequency = 16,

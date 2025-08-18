@@ -56,12 +56,11 @@ namespace IndustrialSystems.Shared
         public void Update()
         {
             MyAPIGateway.Parallel.Do(UpdatePipes, UpdateConveyors);
-
-            foreach (var system in Systems.Values)
+            MyAPIGateway.Parallel.ForEach(Systems.Values, (system) =>
             {
                 foreach (var updatable in system.UpdateableBlocks)
                     updatable.Update();
-            }
+            });
         }
         public void UpdatePipes()
         {

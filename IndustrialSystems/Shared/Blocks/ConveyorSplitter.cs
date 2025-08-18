@@ -27,7 +27,10 @@ namespace IndustrialSystems.Shared.Blocks
             Items = new Item[SplitterDef.Connections.Length];
             Outgoing = new ConveyorLine[SplitterDef.Connections.Length];
         }
+        public override void Close()
+        {
 
+        }
         public void AcceptItem(Item item)
         {
             for (int i = OutgoingIndex; i < Items.Length + OutgoingIndex; i++)
