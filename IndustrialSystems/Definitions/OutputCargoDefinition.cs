@@ -8,26 +8,24 @@ using static IndustrialSystems.Definitions.DefinitionConstants;
 
 namespace IndustrialSystems.Definitions
 {
-    public class OutputDefinition : Definition
+    public class OutputCargoDefinition : Definition
     {
         public override object[] ConvertToObjectArray()
         {
             return new object[] {
                 ISTypes.Output,
-                SubtypeId,
-                DefinitionPriority,
+                Base.ConvertToObjectArray(),
             };
         }
 
-        public static OutputDefinition ConvertFromObjectArray(object[] data)
+        public static OutputCargoDefinition ConvertFromObjectArray(object[] data)
         {
             if ((ISTypes)data[0] != ISTypes.Output)
                 return null;
 
-            return new OutputDefinition()
+            return new OutputCargoDefinition()
             {
-                SubtypeId = (string)data[1],
-                DefinitionPriority = (int)data[2],
+                Base = NameDef.ConvertFromObjectArray((object[])data[1]),
             };
         }
     }

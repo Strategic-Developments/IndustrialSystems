@@ -1,5 +1,4 @@
-﻿using IndustrialSystems.IndustrialSystems.Definitions.Structs;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,6 +7,7 @@ using System.Threading.Tasks;
 using VRage.Game.ModAPI;
 using VRage.Utils;
 using VRageMath;
+using static IndustrialSystems.Definitions.DefinitionConstants;
 
 namespace IndustrialSystems.Utilities
 {
@@ -70,7 +70,8 @@ namespace IndustrialSystems.Utilities
                 Map = new Dictionary<string, byte>();
             }
 
-            Map[s] = (byte)(Map.Count + 1);
+            if (!Map.ContainsKey(s))
+                Map[s] = (byte)(Map.Count + 1);
         }
         public float Dot(ResourceVector other)
         {

@@ -17,13 +17,13 @@ namespace IndustrialSystems.Definitions
         /// <summary>
         /// Time it takes in ticks for one batch to be processed and output
         /// </summary>
-        public int BatchSpeedTicks;
+        public int BatchTimeTicks;
         public object[] ConvertToObjectArray()
         {
             return new object[]
             {
                 BatchAmount,
-                BatchSpeedTicks,
+                BatchTimeTicks,
             };
         }
 
@@ -32,7 +32,7 @@ namespace IndustrialSystems.Definitions
             return new BatchJobDef
             {
                 BatchAmount = (int)data[0],
-                BatchSpeedTicks = (int)data[1],
+                BatchTimeTicks = (int)data[1],
             };
         }
     }

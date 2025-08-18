@@ -10,7 +10,7 @@ using VRage.ModAPI;
 
 namespace IndustrialSystems.Shared.Blocks
 {
-    public class ISBlock<TBlock> : IIndustrialSystemMachine where TBlock : IMyCubeBlock
+    public class ISBlock<TBlock> : IIndustrialSystemMachine, IUpdateable where TBlock : IMyCubeBlock
     {
         public readonly TBlock Self;
         public IndustrialSystem ParentSystem;

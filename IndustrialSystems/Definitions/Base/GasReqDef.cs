@@ -12,7 +12,7 @@ namespace IndustrialSystems.Definitions
     {
         public Fluid[] RequiredFluidsPerBatch;
 
-        public float SpeedIncreaseWithOptionalFluids;
+        public float SpeedMultiplierWithOptionalFluids;
         public Fluid[] OptionalFluidsPerBatch;
 
         public object[] ConvertToObjectArray()
@@ -20,7 +20,7 @@ namespace IndustrialSystems.Definitions
             return new object[]
             {
                 RequiredFluidsPerBatch,
-                SpeedIncreaseWithOptionalFluids,
+                SpeedMultiplierWithOptionalFluids,
                 OptionalFluidsPerBatch,
             };
         }
@@ -29,9 +29,9 @@ namespace IndustrialSystems.Definitions
         {
             return new GasReqDef
             {
-                RequiredFluidsPerBatch = (Fluid[])data[1],
-                SpeedIncreaseWithOptionalFluids = (float)data[2],
-                OptionalFluidsPerBatch = (Fluid[])data[3],
+                RequiredFluidsPerBatch = (Fluid[])data[0],
+                SpeedMultiplierWithOptionalFluids = (float)data[1],
+                OptionalFluidsPerBatch = (Fluid[])data[2],
             };
         }
     }

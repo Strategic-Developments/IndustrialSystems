@@ -10,14 +10,52 @@ namespace IndustrialSystems.Definitions
 {
     public class DrillDefinition : BlockMachineDefinition
     {
-        public struct VoxelCheckDef : IPackagable
+        public DrillBatchDef DrillBatches;
+        public struct DrillBatchDef : IPackagable
         {
+            /// <summary>
+            /// in ticks
+            /// </summary>
+            public int TimeBetweenBatches;
+
+            /// <summary>
+            /// Ores per batch
+            /// </summary>
+            public int DefaultOresPerBatch;
+            public Dictionary<string, int> OresPerBatchPerMaterial;
+
             /// <summary>
             /// set to zero to ignore
             /// otherwise, actual drill speed is the floor of OresPerBatchPerMaterial (or DefaultOresPerBatch if the material doesn't exist) * VoxelAmountMultiplier * (Voxel count)
             /// </summary>
             public float VoxelAmountMultiplier;
 
+            public object[] ConvertToObjectArray()
+            {
+                return new object[]
+                    {
+                        TimeBetweenBatches,
+                        DefaultOresPerBatch,
+                        OresPerBatchPerMaterial,
+                        VoxelAmountMultiplier,
+                    };
+            }
+
+            public static DrillBatchDef ConvertFromObjectArray(object[] data)
+            {
+                return new DrillBatchDef
+                {
+                    TimeBetweenBatches = (int)data[0],
+                    DefaultOresPerBatch = (int)data[1],
+                    OresPerBatchPerMaterial = (Dictionary<string, int>)data[2],
+                    VoxelAmountMultiplier = (float)data[3],
+                };
+            }
+        }
+
+        public VoxelCheckDef DrillVoxelChecks;
+        public struct VoxelCheckDef : IPackagable
+        {
             /// <summary>
             /// Cube side length, centered on block origin to check for voxels. If the check passes then it will do downwards cube checks based on other variables. All voxels seen are compiled into a list for users to choose from.
             /// </summary>
@@ -39,39 +77,33 @@ namespace IndustrialSystems.Definitions
             {
                 return new object[]
                 {
-                    VoxelAmountMultiplier,
                     InitialVoxelCheckSize,
                     DownwardsVoxelCheckSize,
                     DownwardVoxelCheckSizeInterval,
                     DownwardVoxelCheckSizeAmount,
                 };
             }
+
+            public static VoxelCheckDef ConvertFromObjectArray(object[] data)
+            {
+                return new VoxelCheckDef
+                {
+                    InitialVoxelCheckSize = (float)data[0],
+                    DownwardsVoxelCheckSize = (float)data[1],
+                    DownwardVoxelCheckSizeInterval = (float)data[2],
+                    DownwardVoxelCheckSizeAmount = (int)data[3],
+                };
+            }
         }
-
-        /// <summary>
-        /// in ticks
-        /// </summary>
-        public int TimeBetweenBatches;
-
-        /// <summary>
-        /// Ores per batch
-        /// </summary>
-        public int DefaultOresPerBatch;
-        public Dictionary<string, int> OresPerBatchPerMaterial;
-
-        public VoxelCheckDef DrillVoxelChecks;
         public GasReqDef GasRequirements;
         public override object[] ConvertToObjectArray()
         {
             return new object[] {
                 ISTypes.Drill,
-                SubtypeId,
-                DefinitionPriority,
-                DefaultOresPerBatch,
-                OresPerBatchPerMaterial,
+                Base.ConvertToObjectArray(),
+                DrillBatches.ConvertToObjectArray(),
+                MachineInventory.ConvertToObjectArray(),
                 DrillVoxelChecks.ConvertToObjectArray(),
-                TimeBetweenBatches,
-                MaxItemsInInventory,
                 GasRequirements.ConvertToObjectArray(),
             };
         }
@@ -83,14 +115,11 @@ namespace IndustrialSystems.Definitions
 
             return new DrillDefinition()
             {
-                SubtypeId = (string)data[1],
-                DefinitionPriority = (int)data[2],
-                DefaultOresPerBatch = (int)data[3],
-                OresPerBatchPerMaterial = (Dictionary<string, int>)data[4],
-                PowerRequirementOverride = (float)data[5],
-                TimeBetweenBatches = (int)data[6],
-                MaxItemsInInventory = (int)data[7],
-                GasRequirements = GasReqDef.ConvertFromObjectArray((object[])data[8]),
+                Base = NameDef.ConvertFromObjectArray((object[])data[1]),
+                DrillBatches = DrillBatchDef.ConvertFromObjectArray((object[])data[2]),
+                MachineInventory = MachineInventoryDef.ConvertFromObjectArray((object[])data[3]),
+                DrillVoxelChecks = VoxelCheckDef.ConvertFromObjectArray((object[])data[4]),
+                GasRequirements = GasReqDef.ConvertFromObjectArray((object[])data[5]),
             };
         }
     }

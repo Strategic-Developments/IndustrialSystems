@@ -10,37 +10,48 @@ namespace IndustrialSystems.Definitions
 {
     public class SmelterDefinition : BlockMachineDefinition
     {
-        /// <summary>
-        /// Minimum input number of items required to process, and will consume that amount.
-        /// </summary>
-        public int BatchAmount;
+        public BatchJobDef BatchJob;
+        public SmelterOreMultDef SmelterStats;
+        public struct SmelterOreMultDef : IPackagable
+        {
+            /// <summary>
+            /// Default ore to ingot resource multiplier
+            /// </summary>
+            public float DefaultOreMultiplier;
+            /// <summary>
+            /// Key: Ore name (keen Ore subtype like Iron, Nickel, etc)
+            /// Value: Alternate multiplier for the given ore
+            /// </summary>
+            public Dictionary<string, float> SmelterOreMultipliers;
 
-        /// <summary>
-        /// Time it takes in ticks for one batch to be processed and output
-        /// </summary>
-        public int BatchSpeedTicks;
+            public object[] ConvertToObjectArray()
+            {
+                return new object[]
+                {
+                    DefaultOreMultiplier,
+                    SmelterOreMultipliers,
+                };
+            }
 
-        /// <summary>
-        /// Default ore to ingot resource multiplier
-        /// </summary>
-        public float DefaultOreMultiplier;
-        /// <summary>
-        /// Key: Ore name (keen Ore subtype like Iron, Nickel, etc)
-        /// Value: Alternate multiplier for the given ore
-        /// </summary>
-        public Dictionary<string, float> SmelterOreMultipliers;
+            public static SmelterOreMultDef ConvertFromObjectArray(object[] data)
+            {
+                return new SmelterOreMultDef
+                {
+                    DefaultOreMultiplier = (float)data[0],
+                    SmelterOreMultipliers = (Dictionary<string, float>)data[1],
+                };
+            }
+        }
+        public GasReqDef GasRequirements;
         public override object[] ConvertToObjectArray()
         {
             return new object[] {
                 ISTypes.Smelter,
-                SubtypeId,
-                DefinitionPriority,
-                DefaultOreMultiplier,
-                SmelterOreMultipliers,
-                PowerRequirementOverride,
-                BatchAmount,
-                BatchSpeedTicks,
-                MaxItemsInInventory,
+                Base.ConvertToObjectArray(),
+                MachineInventory.ConvertToObjectArray(),
+                BatchJob.ConvertToObjectArray(),
+                SmelterStats.ConvertToObjectArray(),
+                GasRequirements.ConvertToObjectArray(),
             };
         }
 
@@ -51,14 +62,11 @@ namespace IndustrialSystems.Definitions
 
             return new SmelterDefinition()
             {
-                SubtypeId = (string)data[1],
-                DefinitionPriority = (int)data[2],
-                DefaultOreMultiplier = (float)data[3],
-                SmelterOreMultipliers = (Dictionary<string, float>)data[4],
-                PowerRequirementOverride = (float)data[5],
-                BatchAmount = (int)data[6],
-                BatchSpeedTicks = (int)data[7],
-                MaxItemsInInventory = (int)data[8],
+                Base = NameDef.ConvertFromObjectArray((object[])data[1]),
+                MachineInventory = MachineInventoryDef.ConvertFromObjectArray((object[])data[2]),
+                BatchJob = BatchJobDef.ConvertFromObjectArray((object[])data[3]),
+                SmelterStats = SmelterOreMultDef.ConvertFromObjectArray((object[])data[4]),
+                GasRequirements = GasReqDef.ConvertFromObjectArray((object[])data[5]),
             };
         }
     }

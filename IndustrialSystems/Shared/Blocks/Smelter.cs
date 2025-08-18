@@ -8,7 +8,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VRage.Game.ModAPI;
-using IndustrialSystems.IndustrialSystems.Definitions.Structs;
 
 namespace IndustrialSystems.Shared.Blocks
 {
@@ -29,20 +28,20 @@ namespace IndustrialSystems.Shared.Blocks
             InputItem = new InventoryItem(Item.CreateInvalid(), 0);
             OutputItem = new InventoryItem(Item.CreateInvalid(), 0);
 
-            Mask = new ResourceVector(definition.SmelterOreMultipliers, definition.DefaultOreMultiplier);
+            Mask = new ResourceVector(definition.SmelterStats.SmelterOreMultipliers, definition.SmelterStats.DefaultOreMultiplier);
         }
 
         public override void Update()
         {
-            if (InputItem.Amount > Definition.BatchAmount)
+            if (InputItem.Amount > Definition.BatchJob.BatchAmount)
             {
                 NextItemCounter--;
 
                 if (NextItemCounter <= 0)
                 {
-                    NextItemCounter = Definition.BatchSpeedTicks;
+                    NextItemCounter = Definition.BatchJob.BatchTimeTicks;
 
-                    OutputItem.Amount += Definition.BatchAmount;
+                    OutputItem.Amount += Definition.BatchJob.BatchAmount;
                 }
             }
         }

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VRage.ModAPI;
+using static IndustrialSystems.Definitions.DefinitionConstants;
 
 namespace IndustrialSystems.Shared.Blocks
 {
@@ -34,13 +35,13 @@ namespace IndustrialSystems.Shared.Blocks
 
         public override void Update()
         {
-            if (InputItem.Amount > Definition.BatchAmount)
+            if (InputItem.Amount > Definition.BatchJob.BatchAmount)
             {
                 NextItemCounter--;
 
                 if (NextItemCounter <= 0)
                 {
-                    NextItemCounter = Definition.BatchSpeedTicks;
+                    NextItemCounter = Definition.BatchJob.BatchTimeTicks;
 
                     OutputItem.Amount += NumberToOutputPerBatch;
                 }
@@ -50,15 +51,15 @@ namespace IndustrialSystems.Shared.Blocks
         public void RecomputeOutputItem()
         {
             ResourceVector v = InputItem.Item.Composition.Copy();
-            NumberToOutputPerBatch = Definition.ModifierFunc.Invoke(ResourceVector.Map,
-                v.Vector, Definition.BatchAmount, UserSelections);
+            NumberToOutputPerBatch = Definition.Modifier.ModifierFunc.Invoke(ResourceVector.Map,
+                v.Vector, Definition.BatchJob.BatchAmount, UserSelections);
 
-            OutputItem.Item = new Item(Definition.TypeToModify, v);
+            OutputItem.Item = new Item(Definition.Modifier.TypeToModify, v);
         }
 
         bool IItemConsumer.CanAcceptItem(Item item)
         {
-            return (InputItem.Amount == 0 && item.Type == Definition.TypeToModify) || item.Equals(InputItem.Item);
+            return (InputItem.Amount == 0 && item.Type == Definition.Modifier.TypeToModify) || item.Equals(InputItem.Item);
         }
 
         void IItemConsumer.AcceptItem(Item item)

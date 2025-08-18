@@ -1,4 +1,4 @@
-﻿using IndustrialSystems.IndustrialSystems.Definitions.Structs;
+﻿using IndustrialSystems.Definitions;
 using IndustrialSystems.Shared;
 using IndustrialSystems.Shared.Interfaces;
 using IndustrialSystems.Utilities;

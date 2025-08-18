@@ -12,47 +12,65 @@ namespace IndustrialSystems.Definitions
     using TerminalControlText = MyTuple<string, string, string>;
     public class ResourceModifierDefinition : BlockMachineDefinition
     {
-        /// <summary>
-        /// Ore, or Ingot, will only accept the given type
-        /// </summary>
-        public ItemType TypeToModify;
-        /// <summary>
-        /// Minimum input number of ores required to process, and will consume that amount.
-        /// </summary>
-        public int BatchAmount;
+        public BatchJobDef BatchJob;
 
-        /// <summary>
-        /// Time it takes in ticks for one batch to be processed and output
-        /// </summary>
-        public int BatchSpeedTicks;
+        public ItemModifierDef Modifier;
+        public struct ItemModifierDef : IPackagable
+        {
+            /// <summary>
+            /// Ore, or Ingot, will only accept the given type
+            /// </summary>
+            public ItemType TypeToModify;
 
-        /// <summary>
-        /// <para>Dictionary&lt;string, byte&gt; - map from ore names to indexes in the float[].</para>
-        /// <para>float[] - resource vector; basically the item's composition. Recommended to not modify.</para>
-        /// <para>List&lt;string&gt; - list of options to present the user - FILL THIS OUT</para>
-        /// <para>return value - maximum number of user selections</para>
-        /// </summary>
-        public Func<IReadOnlyDictionary<string, byte>, float[], List<TerminalControlText>, int> UserOptionsFunc;
+            /// <summary>
+            /// <para>Dictionary&lt;string, byte&gt; - map from ore names to indexes in the float[].</para>
+            /// <para>float[] - resource vector; basically the item's composition. Recommended to not modify.</para>
+            /// <para>List&lt;string&gt; - list of options to present the user - FILL THIS OUT</para>
+            /// <para>return value - maximum number of user selections</para>
+            /// </summary>
+            public Func<IReadOnlyDictionary<string, byte>, float[], List<TerminalControlText>, int> UserOptionsFunc;
 
-        /// <summary>
-        /// <para>Dictionary&lt;string, byte&gt; - map from ore names to indexes in the float[].</para>
-        /// <para>float[] - resource vector; basically the item's composition. Modify this to change item comp</para>
-        /// <para>uint - number of items</para>
-        /// <para>List&lt;string&gt; - list of actively user selected options</para>
-        /// <para>return value - number of items post modification</para>
-        /// </summary>
-        public Func<IReadOnlyDictionary<string, byte>, float[], int, List<string>, int> ModifierFunc;
+            /// <summary>
+            /// <para>Dictionary&lt;string, byte&gt; - map from ore names to indexes in the float[].</para>
+            /// <para>float[] - resource vector; basically the item's composition. Modify this to change item comp</para>
+            /// <para>uint - number of items</para>
+            /// <para>List&lt;string&gt; - list of actively user selected options</para>
+            /// <para>return value - number of items post modification</para>
+            /// </summary>
+            public Func<IReadOnlyDictionary<string, byte>, float[], int, List<string>, int> ModifierFunc;
+
+            public object[] ConvertToObjectArray()
+            {
+                return new object[]
+                {
+                    TypeToModify,
+                    UserOptionsFunc,
+                    ModifierFunc,
+                };
+            }
+
+            public static ItemModifierDef ConvertFromObjectArray(object[] data)
+            {
+                return new ItemModifierDef
+                {
+                    TypeToModify = (ItemType)data[0],
+                    UserOptionsFunc = (Func<IReadOnlyDictionary<string, byte>, float[], List<TerminalControlText>, int>)data[1],
+                    ModifierFunc = (Func<IReadOnlyDictionary<string, byte>, float[], int, List<string>, int>)data[2],
+                };
+            }
+        }
+        
+
+        public GasReqDef GasRequirements;
         public override object[] ConvertToObjectArray()
         {
             return new object[] {
                 ISTypes.ResourceModifier,
-                SubtypeId,
-                DefinitionPriority,
-                UserOptionsFunc,
-                ModifierFunc,
-                BatchAmount,
-                BatchSpeedTicks,
-                MaxItemsInInventory,
+                Base,
+                MachineInventory,
+                BatchJob,
+                Modifier,
+                GasRequirements,
             };
         }
 
@@ -65,14 +83,11 @@ namespace IndustrialSystems.Definitions
 
             return new ResourceModifierDefinition()
             {
-                SubtypeId = (string)data[1],
-                DefinitionPriority = (int)data[2],
-                PowerRequirementOverride = (float)data[3],
-                UserOptionsFunc = (Func<IReadOnlyDictionary<string, byte>, float[], List<TerminalControlText>, int>)data[4],
-                ModifierFunc = (Func<IReadOnlyDictionary<string, byte>, float[], int, List<string>, int>)data[5],
-                BatchAmount = (int)data[6],
-                BatchSpeedTicks = (int)data[7],
-                MaxItemsInInventory = (int)data[8],
+                Base = NameDef.ConvertFromObjectArray((object[])data[1]),
+                MachineInventory = MachineInventoryDef.ConvertFromObjectArray((object[])data[2]),
+                BatchJob = BatchJobDef.ConvertFromObjectArray((object[])data[3]),
+                Modifier = ItemModifierDef.ConvertFromObjectArray((object[])data[4]),
+                GasRequirements = GasReqDef.ConvertFromObjectArray((object[])data[5]),
             };
         }
     }

@@ -16,12 +16,18 @@ namespace IndustrialSystems.Shared
     {
         public int ModularId;
 
-        public List<ConveyorLine> AllConveyorLines;
-        public List<ConveyorLine> BackConveyorLines;
+        public HashSet<ConveyorLine> AllConveyorLines;
+        public HashSet<ConveyorLine> BackConveyorLines;
+
+        public HashSet<IUpdateable> UpdateableBlocks;
+
 
         public IndustrialSystem(int modularId)
         {
             this.ModularId = modularId;
+
+            AllConveyorLines = new HashSet<ConveyorLine>();
+            BackConveyorLines = new HashSet<ConveyorLine>();
         }
         
         public void UpdateConveyors()
@@ -144,7 +150,10 @@ namespace IndustrialSystems.Shared
 
         public void Update()
         {
-            
+            UpdateConveyors();
+
+            foreach (var updatable in UpdateableBlocks)
+                updatable.Update();
         }
 
     }

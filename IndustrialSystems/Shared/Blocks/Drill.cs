@@ -45,13 +45,13 @@ namespace IndustrialSystems.Shared.Blocks
 
         public override void Update()
         {
-            if (Self.IsWorking && HasOreSelected && OutputItem.Amount < Definition.MaxItemsInInventory)
+            if (Self.IsWorking && HasOreSelected && OutputItem.Amount < Definition.MachineInventory.MaxItemsInInventory)
             {
                 NextBatchCounter--;
 
                 if (NextBatchCounter <= 0)
                 {
-                    NextBatchCounter = Definition.TimeBetweenBatches;
+                    NextBatchCounter = Definition.DrillBatches.TimeBetweenBatches;
                     OutputItem.Amount += SelectedChoice.Item2;
                 }
             }
@@ -61,7 +61,7 @@ namespace IndustrialSystems.Shared.Blocks
             HasOreSelected = false;
             foreach (var choice in UserChoices)
             {
-                if (choice.Item1.SubtypeId == mat)
+                if (choice.Item1.Base.SubtypeId == mat)
                 {
                     SelectedChoice = choice;
                     HasOreSelected = true;
@@ -69,7 +69,7 @@ namespace IndustrialSystems.Shared.Blocks
                 }
             }
 
-            MaterialBeingMined = new ResourceVector(SelectedChoice.Item1.MaterialProperties);
+            MaterialBeingMined = new ResourceVector(SelectedChoice.Item1.Material.MaterialProperties);
         }
 
         private void CustomInfo(IMyTerminalBlock block, StringBuilder builder)
@@ -78,7 +78,7 @@ namespace IndustrialSystems.Shared.Blocks
             if (HasOreSelected)
             {
 
-                builder.Append($"Currently producing {SelectedChoice.Item1.DisplayName} at {SelectedChoice.Item2}/s\n");
+                builder.Append($"Currently producing {SelectedChoice.Item1.Material.DisplayName} at {SelectedChoice.Item2}/s\n");
                 builder.Append($"Ore Material Properties:\n");
                 SelectedChoice.Item1.AppendMaterialProperties(builder);
             }
@@ -94,17 +94,17 @@ namespace IndustrialSystems.Shared.Blocks
             List<MyVoxelBase> voxelbaseList = new List<MyVoxelBase>();
             Dictionary<byte, int> initialVoxelDict = new Dictionary<byte, int>();
 
-            GetVoxelsInBox(voxelbaseList, initialVoxelDict, Self.WorldMatrix.Translation, Definition.InitialVoxelCheckSize);
+            GetVoxelsInBox(voxelbaseList, initialVoxelDict, Self.WorldMatrix.Translation, Definition.DrillVoxelChecks.InitialVoxelCheckSize);
 
             UserChoices.Clear();
 
             if (initialVoxelDict.Count > 0)
             {
-                for (int i = 1; i < Definition.DownwardVoxelCheckSizeAmount; i++)
+                for (int i = 1; i < Definition.DrillVoxelChecks.DownwardVoxelCheckSizeAmount; i++)
                 {
-                    Vector3 PositionToCheck = Self.WorldMatrix.Translation - Self.WorldMatrix.Down * Definition.DownwardVoxelCheckSizeInterval * i;
+                    Vector3 PositionToCheck = Self.WorldMatrix.Translation - Self.WorldMatrix.Down * Definition.DrillVoxelChecks.DownwardVoxelCheckSizeInterval * i;
 
-                    GetVoxelsInBox(voxelbaseList, initialVoxelDict, PositionToCheck, Definition.DownwardsVoxelCheckSize);
+                    GetVoxelsInBox(voxelbaseList, initialVoxelDict, PositionToCheck, Definition.DrillVoxelChecks.DownwardsVoxelCheckSize);
                 }
             }
             
@@ -121,10 +121,10 @@ namespace IndustrialSystems.Shared.Blocks
                         continue;
                     }
                     int miningSpeed;
-                    if (!Definition.OresPerBatchPerMaterial.TryGetValue(d.SubtypeId, out miningSpeed))
-                        miningSpeed = Definition.DefaultOresPerBatch;
-                    miningSpeed = (int)(Math.Floor(miningSpeed * Definition.VoxelAmountMultiplier == 0 ? 1 :
-                        initialVoxelDict[m] * Definition.VoxelAmountMultiplier));
+                    if (!Definition.DrillBatches.OresPerBatchPerMaterial.TryGetValue(d.Base.SubtypeId, out miningSpeed))
+                        miningSpeed = Definition.DrillBatches.DefaultOresPerBatch;
+                    miningSpeed = (int)(Math.Floor(miningSpeed * Definition.DrillVoxelChecks.VoxelAmountMultiplier == 0 ? 1 :
+                        initialVoxelDict[m] * Definition.DrillVoxelChecks.VoxelAmountMultiplier));
 
                     UserChoices.Add(new Material(d, miningSpeed));
                 }

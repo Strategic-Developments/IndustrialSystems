@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VRage;
 using IndustrialSystems.Utilities;
-using static IndustrialSystems.IndustrialSystems.Definitions.Structs.DefinitionConstants;
+using static IndustrialSystems.Definitions.DefinitionConstants;
 
 namespace IndustrialSystems.Utilities
 {

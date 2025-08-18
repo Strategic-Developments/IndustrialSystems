@@ -5,38 +5,27 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using static IndustrialSystems.Definitions.DefinitionConstants;
-using FluidDefinition = VRage.MyTuple<string, float>;
+using Fluid = VRage.MyTuple<string, int>;
 
 namespace IndustrialSystems.Definitions
 {
     public class GasRefinerDefinition : BlockMachineDefinition
     {
-        /// <summary>
-        /// Minimum input number of ores required to process, and will consume that amount.
-        /// </summary>
-        public int BatchAmount;
-
-        /// <summary>
-        /// Time it takes in ticks for one batch to be processed and output
-        /// </summary>
-        public int BatchSpeedTicks;
+        public BatchJobDef BatchJob;
         /// <summary>
         /// Key: ore name
         /// Value: Gas resource name & amount
         /// </summary>
-        public Dictionary<string, FluidDefinition[]> RefineOresToGas;
+        public Dictionary<string, Fluid[]> RefineOresToGas;
         
         public override object[] ConvertToObjectArray()
         {
             return new object[] {
                 ISTypes.GasRefiner,
-                SubtypeId,
-                DefinitionPriority,
+                Base.ConvertToObjectArray(),
+                MachineInventory.ConvertToObjectArray(),
+                BatchJob.ConvertToObjectArray(),
                 RefineOresToGas,
-                PowerRequirementOverride,
-                BatchAmount,
-                BatchSpeedTicks,
-                MaxItemsInInventory,
             };
         }
 
@@ -47,13 +36,10 @@ namespace IndustrialSystems.Definitions
 
             return new GasRefinerDefinition()
             {
-                SubtypeId = (string)data[1],
-                DefinitionPriority = (int)data[2],
-                RefineOresToGas = (Dictionary<string, FluidDefinition[]>)data[3],
-                PowerRequirementOverride = (float)data[4],
-                BatchAmount = (int)data[5],
-                BatchSpeedTicks = (int)data[6],
-                MaxItemsInInventory = (int)data[7],
+                Base = NameDef.ConvertFromObjectArray((object[])data[1]),
+                MachineInventory = MachineInventoryDef.ConvertFromObjectArray((object[])data[2]),
+                BatchJob = BatchJobDef.ConvertFromObjectArray((object[])data[3]),
+                RefineOresToGas = (Dictionary<string, Fluid[]>)data[4],
             };
         }
     }

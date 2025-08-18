@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using IndustrialSystems.Server;
+using IndustrialSystems.Shared;
 using Sandbox.ModAPI;
 using VRageMath;
 using static ModularAssemblies.Communication.DefinitionDefs;
@@ -20,10 +20,10 @@ namespace ModularAssemblies
         // However, for all but the simplest of assemblies it would be wise to have a separate utilities class.
 
         // This is the important bit.
-        internal ModularPhysicalDefinition ConveyorNetwork => new ModularPhysicalDefinition
+        internal ModularPhysicalDefinition IndustrialSystem => new ModularPhysicalDefinition
         {
             // Unique name of the definition.
-            Name = "ConveyorNetwork",
+            Name = "IndustrialSystem",
 
             //OnInit = () =>
             //{

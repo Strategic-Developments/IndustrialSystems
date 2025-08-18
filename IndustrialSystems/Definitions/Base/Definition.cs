@@ -20,23 +20,7 @@ namespace IndustrialSystems.Definitions
     }
     public abstract class Definition : IPackagable
     {
-        /// <summary>
-        /// Subtype ID of the block or material, or mined ore.
-        /// </summary>
-        public string SubtypeId;
-        /// <summary>
-        /// If there are multiple definitions with the same subtype ID (like say someone is adjusting stats of another's mod), then the definition with the highest priority will be loaded.
-        /// <para>For people making their own mod, its recommended to leave this at zero.</para>
-        /// <para>For people MODIFYING other people's mod, its recommended to set this at anything greater than zero.</para>
-        /// <para>This effectively allows mod adjuster-like behavior without relying on mod load order, although the entire definition must be copied for it to work properly. Those modifying shield stats can just have the shield definitions in their place w/o copying any models, sbc files, or sounds to the modified mod.</para>
-        /// <para>
-        /// Units: Unitless
-        /// </para>
-        /// <para>
-        /// Requirements: <c>Value is an integer</c>
-        /// </para>
-        /// </summary>
-        public int DefinitionPriority;
+        public NameDef Base;
         /// <summary>
         /// Need to use object[] because I don't want to make an API just to transfer delegates
         /// </summary>
@@ -45,21 +29,44 @@ namespace IndustrialSystems.Definitions
 
     public abstract class BlockMachineDefinition : Definition
     {
-        /// <summary>
-        /// If not zero, overrides the block's power requirement to this value in MW.
-        /// <para>
-        /// Units: MW
-        /// </para>
-        /// <para>
-        /// Requirements: <c>Value is greater than or equal to 0</c>
-        /// </para>
-        /// </summary>
-        public float PowerRequirementOverride;
 
-        /// <summary>
-        /// Max number of items before machine stops accepting/producing more.
-        /// </summary>
-        public int MaxItemsInInventory;
+        public MachineInventoryDef MachineInventory;
+        public struct MachineInventoryDef : IPackagable
+        {
+            /// <summary>
+            /// If not zero, overrides the block's power requirement to this value in MW.
+            /// <para>
+            /// Units: MW
+            /// </para>
+            /// <para>
+            /// Requirements: <c>Value is greater than or equal to 0</c>
+            /// </para>
+            /// </summary>
+            public float PowerRequirementOverride;
+
+            /// <summary>
+            /// Max number of items before machine stops accepting/producing more.
+            /// </summary>
+            public int MaxItemsInInventory;
+
+            public object[] ConvertToObjectArray()
+            {
+                return new object[]
+                {
+                PowerRequirementOverride,
+                MaxItemsInInventory,
+                };
+            }
+
+            public static MachineInventoryDef ConvertFromObjectArray(object[] data)
+            {
+                return new MachineInventoryDef
+                {
+                    PowerRequirementOverride = (float)data[0],
+                    MaxItemsInInventory = (int)data[1],
+                };
+            }
+        }
     }
 
     public static class DefinitionConstants
@@ -77,6 +84,7 @@ namespace IndustrialSystems.Definitions
             GasRefiner,
             Output,
             Material,
+            MaterialArray,
         }
 
         public enum ItemType : byte
