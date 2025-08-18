@@ -4,20 +4,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VRageMath;
 using static IndustrialSystems.Definitions.DefinitionConstants;
 using Fluid = VRage.MyTuple<string, int>;
 
 namespace IndustrialSystems.Definitions
 {
-    public class GasRefinerDefinition : BlockMachineDefinition
+    public class GasRefinerDefinition : Definition
     {
+        public NameDef Base;
+        public MachineInventoryDef MachineInventory;
         public BatchJobDef BatchJob;
         /// <summary>
         /// Key: ore name
         /// Value: Gas resource name & amount
         /// </summary>
         public Dictionary<string, Fluid[]> RefineOresToGas;
-        
+        public Dictionary<string, Vector3I[]> GasExports;
         public override object[] ConvertToObjectArray()
         {
             return new object[] {
@@ -26,6 +29,7 @@ namespace IndustrialSystems.Definitions
                 MachineInventory.ConvertToObjectArray(),
                 BatchJob.ConvertToObjectArray(),
                 RefineOresToGas,
+                GasExports,
             };
         }
 
@@ -40,6 +44,7 @@ namespace IndustrialSystems.Definitions
                 MachineInventory = MachineInventoryDef.ConvertFromObjectArray((object[])data[2]),
                 BatchJob = BatchJobDef.ConvertFromObjectArray((object[])data[3]),
                 RefineOresToGas = (Dictionary<string, Fluid[]>)data[4],
+                GasExports = (Dictionary<string, Vector3I[]>)data[5],
             };
         }
     }

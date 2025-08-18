@@ -57,7 +57,7 @@ namespace IndustrialSystems.Shared.Blocks
             OutputItem.Item.Composition = composition;
         }
 
-        bool IItemConsumer.CanAcceptItem(Item item)
+        bool IItemConsumer.CanAcceptItem(IIndustrialSystemMachine machineFrom, Item item)
         {
             return (InputItem.Amount == 0 && item.Type == DefinitionConstants.ItemType.Ore) || item.Equals(InputItem.Item);
         }

@@ -8,10 +8,13 @@ using static IndustrialSystems.Definitions.DefinitionConstants;
 
 namespace IndustrialSystems.Definitions
 {
-    public class SmelterDefinition : BlockMachineDefinition
+    public class SmelterDefinition : Definition
     {
+        public NameDef Base;
+        public MachineInventoryDef MachineInventory;
         public BatchJobDef BatchJob;
         public SmelterOreMultDef SmelterStats;
+        public GasReqDef GasRequirements;
         public struct SmelterOreMultDef : IPackagable
         {
             /// <summary>
@@ -42,7 +45,7 @@ namespace IndustrialSystems.Definitions
                 };
             }
         }
-        public GasReqDef GasRequirements;
+        
         public override object[] ConvertToObjectArray()
         {
             return new object[] {

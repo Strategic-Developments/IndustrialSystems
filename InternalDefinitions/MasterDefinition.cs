@@ -7,7 +7,7 @@ using VRage.Game.Components;
 
 namespace ISDefinitions
 {
-    [MySessionComponentDescriptor(MyUpdateOrder.NoUpdate, Priority = int.MaxValue)]
+    [MySessionComponentDescriptor(MyUpdateOrder.NoUpdate, Priority = int.MinValue /* DO NOT MODIFY PRIORITY HERE!!!!!*/)]
     public partial class Definitions : MySessionComponentBase
     {
         public override void Init(MyObjectBuilder_SessionComponent ignore)
@@ -22,6 +22,8 @@ namespace ISDefinitions
                 Template_Crusher,
                 Template_Purifier,
                 Template_Smelter,
+                Template_ConveyorDefinitions,
+                Template_ConveyorSplitter,
 
                 Template_MaterialDefinitions,
                 Template_Ice,

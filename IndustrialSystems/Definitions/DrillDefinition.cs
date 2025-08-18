@@ -8,9 +8,13 @@ using static IndustrialSystems.Definitions.DefinitionConstants;
 
 namespace IndustrialSystems.Definitions
 {
-    public class DrillDefinition : BlockMachineDefinition
+    public class DrillDefinition : Definition
     {
+        public NameDef Base;
+        public MachineInventoryDef MachineInventory;
         public DrillBatchDef DrillBatches;
+        public VoxelCheckDef DrillVoxelChecks;
+        public GasReqDef GasRequirements;
         public struct DrillBatchDef : IPackagable
         {
             /// <summary>
@@ -52,8 +56,6 @@ namespace IndustrialSystems.Definitions
                 };
             }
         }
-
-        public VoxelCheckDef DrillVoxelChecks;
         public struct VoxelCheckDef : IPackagable
         {
             /// <summary>
@@ -95,7 +97,6 @@ namespace IndustrialSystems.Definitions
                 };
             }
         }
-        public GasReqDef GasRequirements;
         public override object[] ConvertToObjectArray()
         {
             return new object[] {

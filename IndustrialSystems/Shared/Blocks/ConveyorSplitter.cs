@@ -12,24 +12,20 @@ using VRageMath;
 
 namespace IndustrialSystems.Shared.Blocks
 {
-    public class ConveyorSplitter : IItemConsumer, IItemProducer
+    public class ConveyorSplitter : ISBlock<IMyCubeBlock>, IItemConsumer, IItemProducer
     {
-        public IMyCubeBlock Self;
-        public IndustrialSystem ParentSystem;
-
+        public ConveyorDefinition.ConveyorDef SplitterDef;
         public ConveyorLine Incoming;
         public ConveyorLine[] Outgoing;
         public Item[] Items;
         
         public int OutgoingIndex;
 
-        public ConveyorSplitter(IMyCubeBlock self, IndustrialSystem parentSystem)
+        public ConveyorSplitter(IMyCubeBlock self, IndustrialSystem parentSystem, ConveyorDefinition.ConveyorDef def) : base(self, parentSystem)
         {
-            Self = self;
-            ParentSystem = parentSystem;
-
-            Items = new Item[5];
-            Outgoing = new ConveyorLine[5];
+            SplitterDef = def;
+            Items = new Item[SplitterDef.Connections.Length];
+            Outgoing = new ConveyorLine[SplitterDef.Connections.Length];
         }
 
         public void AcceptItem(Item item)
@@ -45,7 +41,7 @@ namespace IndustrialSystems.Shared.Blocks
             }
         }
 
-        public bool CanAcceptItem(Item item)
+        public bool CanAcceptItem(IIndustrialSystemMachine machineFrom, Item item)
         {
             foreach (var i in Items)
             {

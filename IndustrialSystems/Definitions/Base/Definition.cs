@@ -8,6 +8,7 @@ using VRage.Game.Components;
 using VRage.ModAPI;
 using VRage.Utils;
 using VRage;
+using VRageMath;
 
 namespace IndustrialSystems.Definitions
 {
@@ -20,52 +21,108 @@ namespace IndustrialSystems.Definitions
     }
     public abstract class Definition : IPackagable
     {
-        public NameDef Base;
         /// <summary>
         /// Need to use object[] because I don't want to make an API just to transfer delegates
         /// </summary>
         public abstract object[] ConvertToObjectArray();
     }
 
-    public abstract class BlockMachineDefinition : Definition
+    public static class Constructors
     {
-
-        public MachineInventoryDef MachineInventory;
-        public struct MachineInventoryDef : IPackagable
+        public static Vector2 PlaneVector(float x, float y)
         {
-            /// <summary>
-            /// If not zero, overrides the block's power requirement to this value in MW.
-            /// <para>
-            /// Units: MW
-            /// </para>
-            /// <para>
-            /// Requirements: <c>Value is greater than or equal to 0</c>
-            /// </para>
-            /// </summary>
-            public float PowerRequirementOverride;
+            return new Vector2(x, y);
+        }
+        public static Vector2I PlaneVectorI(int x, int y)
+        {
+            return new Vector2I(x, y);
+        }
+        public static Vector3 Vector(float x, float y, float z)
+        {
+            return new Vector3(x, y, z);
+        }
+        public static Vector3I VectorI(int x, int y, int z)
+        {
+            return new Vector3I(x, y, z);
+        }
 
-            /// <summary>
-            /// Max number of items before machine stops accepting/producing more.
-            /// </summary>
-            public int MaxItemsInInventory;
-
-            public object[] ConvertToObjectArray()
+        /// <summary>
+        /// Show given ores in the list menu dropdown
+        /// </summary>
+        /// <param name="maxSelections">Maximum amount of selections users can make</param>
+        /// <returns></returns>
+        public static Func<IReadOnlyDictionary<string, byte>, float[], List<TerminalControlText>, int> ShowOresGiven(int maxSelections)
+        {
+            return (IReadOnlyDictionary<string, byte> keys, float[] parts, List<TerminalControlText> outUserSelections) =>
             {
-                return new object[]
+                foreach (var str in keys)
                 {
-                PowerRequirementOverride,
-                MaxItemsInInventory,
-                };
-            }
+                    outUserSelections.Add(
+                        new TerminalControlText(
+                            str.Key, // user text
+                            $"{parts[str.Value] * 100:##.####}%", // user tooltip
+                            str.Key // object
+                            ));
+                }
 
-            public static MachineInventoryDef ConvertFromObjectArray(object[] data)
+                return maxSelections;
+            };
+        }
+        /// <summary>
+        /// Show nothing in the list menu dropdown
+        /// </summary>
+        /// <returns></returns>
+        public static Func<IReadOnlyDictionary<string, byte>, float[], List<TerminalControlText>, int> ShowNone()
+        {
+            return (IReadOnlyDictionary<string, byte> keys, float[] parts, List<TerminalControlText> outUserSelections) =>
             {
-                return new MachineInventoryDef
+                return 0;
+            };
+        }
+        /// <summary>
+        /// Have the ResourceModifier reduce "None" components of ores/ingots, with a general reduction in item ocunt based on efficiency. 1 = 100% efficient - Usable ore in = Usable ore out (ish, rounds)
+        /// </summary>
+        /// <param name="efficiency"></param>
+        /// <param name="noneAdditive"></param>
+        /// <param name="noneMultiplicative"></param>
+        /// <returns></returns>
+        public static Func<IReadOnlyDictionary<string, byte>, float[], int, List<string>, int> Crusher(float efficiency, float noneAdditive, float noneMultiplicative)
+        {
+            return (IReadOnlyDictionary<string, byte> keys, float[] parts, int initialAmount, List<string> userSelections) =>
+            {
+                byte index = keys["None"];
+                parts[index] = Math.Max(0, parts[index] * noneMultiplicative + noneAdditive);
+                float reduction = parts.SumNormalize() * efficiency;
+                return (int)(Math.Floor(initialAmount * reduction));
+            };
+        }
+        /// <summary>
+        /// Have the ResourceModifier reduce non selected components of ores/ingots, with a general reduction in item ocunt based on efficiency. 1 = 100% efficient - Usable ore in = Usable ore out (ish, rounds)
+        /// </summary>
+        /// <param name="efficiency"></param>
+        /// <param name="nonSelectedAdditive"></param>
+        /// <param name="nonSelectedMultiplicative"></param>
+        /// <returns></returns>
+        public static Func<IReadOnlyDictionary<string, byte>, float[], int, List<string>, int> Purifier(float efficiency, float nonSelectedAdditive, float nonSelectedMultiplicative)
+        {
+            return (IReadOnlyDictionary<string, byte> keys, float[] parts, int initialAmount, List<string> userSelections) =>
+            {
+                foreach (var kvp in keys)
                 {
-                    PowerRequirementOverride = (float)data[0],
-                    MaxItemsInInventory = (int)data[1],
-                };
-            }
+                    foreach (var item in userSelections)
+                    {
+                        if (item == kvp.Key)
+                        {
+                            byte index = keys["None"];
+                            parts[index] = Math.Max(0, parts[index] * nonSelectedMultiplicative + nonSelectedAdditive);
+                            break;
+                        }
+                    }
+                }
+                float reduction = parts.SumNormalize() * efficiency;
+
+                return (int)Math.Floor(initialAmount * reduction);
+            };
         }
     }
 
@@ -85,6 +142,8 @@ namespace IndustrialSystems.Definitions
             Output,
             Material,
             MaterialArray,
+            Conveyor,
+            ConveyorArray,
         }
 
         public enum ItemType : byte
@@ -196,83 +255,6 @@ namespace IndustrialSystems.Definitions
 
             return ret;
         }
-        /// <summary>
-        /// Show given ores in the list menu dropdown
-        /// </summary>
-        /// <param name="maxSelections">Maximum amount of selections users can make</param>
-        /// <returns></returns>
-        public static Func<IReadOnlyDictionary<string, byte>, float[], List<TerminalControlText>, int> ShowOresGiven(int maxSelections)
-        {
-            return (IReadOnlyDictionary<string, byte> keys, float[] parts, List<TerminalControlText> outUserSelections) =>
-            {
-                foreach (var str in keys)
-                {
-                    outUserSelections.Add(
-                        new TerminalControlText(
-                            str.Key, // user text
-                            $"{parts[str.Value] * 100:##.####}%", // user tooltip
-                            str.Key // object
-                            ));
-                }
-
-                return maxSelections;
-            };
-        }
-        /// <summary>
-        /// Show nothing in the list menu dropdown
-        /// </summary>
-        /// <returns></returns>
-        public static Func<IReadOnlyDictionary<string, byte>, float[], List<TerminalControlText>, int> ShowNone()
-        {
-            return (IReadOnlyDictionary<string, byte> keys, float[] parts, List<TerminalControlText> outUserSelections) =>
-            {
-                return 0;
-            };
-        }
-        /// <summary>
-        /// Have the ResourceModifier reduce "None" components of ores/ingots, with a general reduction in item ocunt based on efficiency. 1 = 100% efficient - Usable ore in = Usable ore out (ish, rounds)
-        /// </summary>
-        /// <param name="efficiency"></param>
-        /// <param name="noneAdditive"></param>
-        /// <param name="noneMultiplicative"></param>
-        /// <returns></returns>
-        public static Func<IReadOnlyDictionary<string, byte>, float[], int, List<string>, int> Crusher(float efficiency, float noneAdditive, float noneMultiplicative)
-        {
-            return (IReadOnlyDictionary<string, byte> keys, float[] parts, int initialAmount, List<string> userSelections) =>
-            {
-                byte index = keys["None"];
-                parts[index] = Math.Max(0, parts[index] * noneMultiplicative + noneAdditive);
-                float reduction = parts.SumNormalize() * efficiency;
-                return (int)(Math.Floor(initialAmount * reduction));
-            };
-        }
-        /// <summary>
-        /// Have the ResourceModifier reduce non selected components of ores/ingots, with a general reduction in item ocunt based on efficiency. 1 = 100% efficient - Usable ore in = Usable ore out (ish, rounds)
-        /// </summary>
-        /// <param name="efficiency"></param>
-        /// <param name="nonSelectedAdditive"></param>
-        /// <param name="nonSelectedMultiplicative"></param>
-        /// <returns></returns>
-        public static Func<IReadOnlyDictionary<string, byte>, float[], int, List<string>, int> Purifier(float efficiency, float nonSelectedAdditive, float nonSelectedMultiplicative)
-        {
-            return (IReadOnlyDictionary<string, byte> keys, float[] parts, int initialAmount, List<string> userSelections) =>
-            {
-                foreach (var kvp in keys)
-                {
-                    foreach (var item in userSelections)
-                    {
-                        if (item == kvp.Key)
-                        {
-                            byte index = keys["None"];
-                            parts[index] = Math.Max(0, parts[index] * nonSelectedMultiplicative + nonSelectedAdditive);
-                            break;
-                        }
-                    }
-                }
-                float reduction = parts.SumNormalize() * efficiency;
-
-                return (int)Math.Floor(initialAmount * reduction);
-            };
-        }
+        
     }
 }

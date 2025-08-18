@@ -10,11 +10,13 @@ using static IndustrialSystems.Definitions.DefinitionConstants;
 namespace IndustrialSystems.Definitions
 {
     using TerminalControlText = MyTuple<string, string, string>;
-    public class ResourceModifierDefinition : BlockMachineDefinition
+    public class ResourceModifierDefinition : Definition
     {
+        public NameDef Base;
+        public MachineInventoryDef MachineInventory;
         public BatchJobDef BatchJob;
-
         public ItemModifierDef Modifier;
+        public GasReqDef GasRequirements;
         public struct ItemModifierDef : IPackagable
         {
             /// <summary>
@@ -60,8 +62,6 @@ namespace IndustrialSystems.Definitions
             }
         }
         
-
-        public GasReqDef GasRequirements;
         public override object[] ConvertToObjectArray()
         {
             return new object[] {

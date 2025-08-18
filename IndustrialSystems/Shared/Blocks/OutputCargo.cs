@@ -74,7 +74,7 @@ namespace IndustrialSystems.Shared.Blocks
                 ItemsToAdd.Clear();
             }
         }
-        bool IItemConsumer.CanAcceptItem(Item item)
+        bool IItemConsumer.CanAcceptItem(IIndustrialSystemMachine machineFrom, Item item)
         {
             return true;
         }

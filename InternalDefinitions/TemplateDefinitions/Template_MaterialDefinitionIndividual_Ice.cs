@@ -25,42 +25,24 @@ namespace ISDefinitions
 {
     public partial class Definitions
     {
-        ResourceModifierDefinition Template_Crusher => new ResourceModifierDefinition
+        // This option is available to those of you who want one file per Material Definition.
+        // Template_MaterialDefinitions.cs (where multiple can be placed in one file) is usually cleaner
+        MaterialDefinition Template_Ice => new MaterialDefinition
         {
             Base = new NameDef
             {
-                SubtypeId = "is_crusher",
+                SubtypeId = "Ice",
                 DefinitionPriority = 0,
             },
-            MachineInventory = new MachineInventoryDef
+            Material = new MaterialDef
             {
-                PowerRequirementOverride = 1,
-                MaxItemsInInventory = 150,
-            },
-            GasRequirements = new GasReqDef
-            {
-                RequiredFluidsPerBatch = new Fluid[]
+                DisplayName = "Ice",
+                IsMinedOre = true,
+                MaterialProperties = new MaterialProperties()
                 {
-                    new Fluid{ Item1 = "Gas Subtype Here", Item2 = 0 },
-                },
-                SpeedMultiplierWithOptionalFluids = 2,
-                OptionalFluidsPerBatch = new Fluid[]
-                {
-                    new Fluid{ Item1 = "Gas Subtype Here", Item2 = 0 },
-                },
-                NumberOfBatchesToStore = 5,
-            },
-            BatchJob = new BatchJobDef
-            {
-                BatchAmount = 100,
-                BatchTimeTicks = 60,
-            },
-            Modifier = new ItemModifierDef
-            {
-                TypeToModify = Ore,
-                UserOptionsFunc = ShowNone(),
-                ModifierFunc = Crusher(efficiency: 0.95f, noneAdditive: -0.2f, noneMultiplicative: 0),
-            },
+                    ["Ice"] = 1f,
+                }
+            }
         };
     }
 }

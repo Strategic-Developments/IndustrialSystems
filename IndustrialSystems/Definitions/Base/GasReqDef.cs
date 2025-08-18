@@ -11,10 +11,10 @@ namespace IndustrialSystems.Definitions
     public struct GasReqDef : IPackagable
     {
         public Fluid[] RequiredFluidsPerBatch;
-
         public float SpeedMultiplierWithOptionalFluids;
         public Fluid[] OptionalFluidsPerBatch;
 
+        public int NumberOfBatchesToStore;
         public object[] ConvertToObjectArray()
         {
             return new object[]
@@ -22,6 +22,7 @@ namespace IndustrialSystems.Definitions
                 RequiredFluidsPerBatch,
                 SpeedMultiplierWithOptionalFluids,
                 OptionalFluidsPerBatch,
+                NumberOfBatchesToStore,
             };
         }
 
@@ -32,6 +33,7 @@ namespace IndustrialSystems.Definitions
                 RequiredFluidsPerBatch = (Fluid[])data[0],
                 SpeedMultiplierWithOptionalFluids = (float)data[1],
                 OptionalFluidsPerBatch = (Fluid[])data[2],
+                NumberOfBatchesToStore = (int)data[3],
             };
         }
     }

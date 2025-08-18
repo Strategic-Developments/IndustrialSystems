@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 
 namespace IndustrialSystems.Shared.Interfaces
 {
-    public interface IItemConsumer : IIndustrialSystemMachine
+    public interface IFluidInteractable : IIndustrialSystemMachine
     {
-        bool CanAcceptItem(IIndustrialSystemMachine machineFrom, Item item);
-        void AcceptItem(Item item);
+        bool CanAcceptFluid(string fluidName);
+        void EqualizeFluidWith(ref FluidContainer incomingPipe);
     }
 }

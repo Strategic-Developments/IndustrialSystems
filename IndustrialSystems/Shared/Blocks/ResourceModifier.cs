@@ -57,7 +57,7 @@ namespace IndustrialSystems.Shared.Blocks
             OutputItem.Item = new Item(Definition.Modifier.TypeToModify, v);
         }
 
-        bool IItemConsumer.CanAcceptItem(Item item)
+        bool IItemConsumer.CanAcceptItem(IIndustrialSystemMachine machineFrom, Item item)
         {
             return (InputItem.Amount == 0 && item.Type == Definition.Modifier.TypeToModify) || item.Equals(InputItem.Item);
         }

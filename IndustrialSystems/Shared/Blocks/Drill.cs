@@ -123,8 +123,8 @@ namespace IndustrialSystems.Shared.Blocks
                     int miningSpeed;
                     if (!Definition.DrillBatches.OresPerBatchPerMaterial.TryGetValue(d.Base.SubtypeId, out miningSpeed))
                         miningSpeed = Definition.DrillBatches.DefaultOresPerBatch;
-                    miningSpeed = (int)(Math.Floor(miningSpeed * Definition.DrillVoxelChecks.VoxelAmountMultiplier == 0 ? 1 :
-                        initialVoxelDict[m] * Definition.DrillVoxelChecks.VoxelAmountMultiplier));
+                    miningSpeed = (int)(Math.Floor(miningSpeed * Definition.DrillBatches.VoxelAmountMultiplier == 0 ? 1 :
+                        initialVoxelDict[m] * Definition.DrillBatches.VoxelAmountMultiplier));
 
                     UserChoices.Add(new Material(d, miningSpeed));
                 }

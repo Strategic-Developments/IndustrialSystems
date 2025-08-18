@@ -10,24 +10,18 @@ using VRageMath;
 
 namespace IndustrialSystems.Shared
 {
-    public class ConveyorLine : IIndustrialSystemMachine
+    public class Pipeline : IIndustrialSystemMachine
     {
-        public ushort Frequency;
-
-        public IIndustrialSystemMachine Destination;
-        public IIndustrialSystemMachine Start;
-
         public List<IMyCubeBlock> Path;
-        public List<ConveyorItem> Items;
+        public List<IFluidInteractable> ConnectedMachines;
+        public FluidContainer StoredFluid;
 
         public ushort DistanceToInsertAtStart;
 
-        public ConveyorLine(ushort frequency, List<IMyCubeBlock> blocks)
+        public Pipeline(List<IMyCubeBlock> blocks)
         {
-            Frequency = frequency;
             Path = blocks;
-            Items = new List<ConveyorItem>();
-
+            StoredFluid = FluidContainer.CreateInvalid();
             DistanceToInsertAtStart = 0;
         }
     }
