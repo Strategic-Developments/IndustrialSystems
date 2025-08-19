@@ -10,18 +10,20 @@ using System.Text;
 using VRage.Game;
 using VRage.Voxels;
 using VRageMath;
+using Sandbox.ModAPI.Interfaces.Terminal;
+using VRage.Utils;
+using VRage.ModAPI;
 
 
 namespace IndustrialSystems.Shared.Blocks
 {
     using Material = VRage.MyTuple<MaterialDefinition, int>;
-    public class Drill : ISBlock<IMyFunctionalBlock>, IItemProducer
+    public class Drill : ISBlock<IMyFunctionalBlock>, IItemProducer, IUpdateable
     {
         public readonly DrillDefinition Definition;
 
         public bool CalculatingMaterials;
 
-        public ResourceVector MaterialBeingMined;
         public bool HasOreSelected;
 
         public Material SelectedChoice;
@@ -29,6 +31,8 @@ namespace IndustrialSystems.Shared.Blocks
 
         public int NextBatchCounter;
         public InventoryItem OutputItem;
+
+        private static bool CreatedTerminalControls;
 
         public Drill(DrillDefinition definition, IMyFunctionalBlock self, IndustrialSystem parentSystem) : base(self, parentSystem) 
         {
@@ -40,15 +44,92 @@ namespace IndustrialSystems.Shared.Blocks
 
             Self.AppendingCustomInfo += CustomInfo;
 
-            MyAPIGateway.Parallel.StartBackground(CalculateAvailableMaterials);
+            if (MyAPIGateway.Multiplayer.IsServer)
+            {
+                MyAPIGateway.Parallel.Start(CalculateAvailableMaterials);
+            }
         }
         public override void Close()
         {
             Self.AppendingCustomInfo -= CustomInfo;
         }
-        public override void Update()
+        public void CreateTerminalControls()
         {
-            if (Self.IsWorking && HasOreSelected && OutputItem.Amount < Definition.MachineInventory.MaxItemsInInventory)
+            CreatedTerminalControls = true;
+            var list = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlListbox, IMyShipDrill>("IndustrialSystems_DrillListBox");
+            list.Title = MyStringId.GetOrCompute("Resource to Mine:");
+            //c.Tooltip = MyStringId.GetOrCompute("This does some stuff!"); // presenece of this tooltip prevents per-item tooltips
+            list.SupportsMultipleBlocks = true;
+            list.Visible = IsVisible;
+
+            list.VisibleRowsCount = 3;
+            list.Multiselect = false; // wether player can select muliple at once (ctrl+click, click&shift+click, etc)
+            list.ListContent = (b, content, preSelect) =>
+            {
+                IIndustrialSystemMachine machine;
+                if (IndustrialSystemManager.I.AllMachines.TryGetValue(b.EntityId, out machine) && machine is Drill)
+                {
+                    Drill d = (Drill)machine;
+
+                    if (d.CalculatingMaterials)
+                    {
+                        content.Add(new MyTerminalControlListBoxItem(
+                            text: MyStringId.GetOrCompute($"Calculating Materials, please wait"),
+                            tooltip: MyStringId.GetOrCompute($"Calculating Materials, please wait"),
+                            userData: ""));
+                        return;
+                    }
+
+                    foreach (var choice in UserChoices)
+                    {
+                        var listItem = new MyTerminalControlListBoxItem(
+                            text: MyStringId.GetOrCompute($"{choice.Item1.Material.DisplayName}"),
+                            tooltip: MyStringId.GetOrCompute($"{((float)choice.Item2/d.Definition.DrillBatches.TimeBetweenBatches)*60:########}/s."),
+                            userData: choice.Item1.Base.SubtypeId);
+                        content.Add(listItem);
+
+                        if (SelectedChoice.Item1 == null)
+                            continue;
+
+                        if (SelectedChoice.Item1 == choice.Item1)
+                        {
+                            preSelect.Add(listItem);
+                        }
+                    }
+                }
+            };
+            list.ItemSelected = (b, selected) =>
+            {
+                IIndustrialSystemMachine machine;
+                if (IndustrialSystemManager.I.AllMachines.TryGetValue(b.EntityId, out machine) && machine is Drill)
+                {
+                    Drill d = (Drill)machine;
+
+                    if (selected.Count == 0 || !(selected[0].UserData is string))
+                    {
+                        d.SelectedChoice = new Material(null, 0);
+                        return;
+                    }
+
+                    SelectMaterial((string)selected[0].UserData);
+                }
+
+            };
+            MyAPIGateway.TerminalControls.AddControl<IMyShipDrill>(list);
+        }
+        public static bool IsVisible(IMyTerminalBlock b)
+        {
+            Definition def;
+            return Config.I.BlockDefinitions.TryGetValue(b.BlockDefinition.SubtypeName, out def) && def is DrillDefinition;
+        }
+        public void Update()
+        {
+            if (!MyAPIGateway.Utilities.IsDedicated && !CreatedTerminalControls)
+            {
+                CreateTerminalControls();
+            }
+
+            if (Self.IsWorking && HasOreSelected && (OutputItem.Amount < Definition.MachineInventory.MaxItemsInInventory))
             {
                 NextBatchCounter--;
 
@@ -62,17 +143,22 @@ namespace IndustrialSystems.Shared.Blocks
         public void SelectMaterial(string mat)
         {
             HasOreSelected = false;
+            SelectedChoice = new Material(null, 0);
             foreach (var choice in UserChoices)
             {
                 if (choice.Item1.Base.SubtypeId == mat)
                 {
+                    if (SelectedChoice.Item1 == choice.Item1 && SelectedChoice.Item2 == choice.Item2)
+                        return;
+
                     SelectedChoice = choice;
                     HasOreSelected = true;
-                    break;
+
+                    ResourceVector vector = new ResourceVector(SelectedChoice.Item1.Material.MaterialProperties);
+                    OutputItem = new InventoryItem(new Item(DefinitionConstants.ItemType.Ore, vector), 0);
+                    return;
                 }
             }
-
-            MaterialBeingMined = new ResourceVector(SelectedChoice.Item1.Material.MaterialProperties);
         }
 
         private void CustomInfo(IMyTerminalBlock block, StringBuilder builder)
@@ -84,20 +170,16 @@ namespace IndustrialSystems.Shared.Blocks
                 builder.Append($"Scanning.\n");
                 return;
             }
+            if (Self.IsWorking && HasOreSelected && (OutputItem.Amount < Definition.MachineInventory.MaxItemsInInventory))
+            {
+                builder.Append($"{Definition.DrillBatches.TimeBetweenBatches-NextBatchCounter}/{Definition.DrillBatches.TimeBetweenBatches} ({(1-(float)NextBatchCounter/Definition.DrillBatches.TimeBetweenBatches)*100:##.##}%) until next batch of {SelectedChoice.Item2} items.\n");
+            }
 
             if (HasOreSelected)
             {
-
-                builder.Append($"Currently producing {SelectedChoice.Item1.Material.DisplayName} at {SelectedChoice.Item2} per {Definition.DrillBatches.TimeBetweenBatches} ticks.\n");
-                builder.Append($"Ore Material Properties:\n");
                 SelectedChoice.Item1.AppendMaterialProperties(builder);
             }
-            else if (UserChoices.Count > 0)
-                builder.Append($"Not producing anything - Select an option from the terminal menu.\n");
-            else
-                builder.Append($"Not producing anything - No voxels found.\n");
-
-            builder.Append($"\nInventory Information:\n");
+            builder.Append($"\nOutput Item Information:\n");
             OutputItem.AppendInventoryInformation(builder);
         }
         public void CalculateAvailableMaterials()
@@ -113,55 +195,67 @@ namespace IndustrialSystems.Shared.Blocks
 
             if (initialVoxelDict.Count > 0)
             {
-                for (int i = 1; i < Definition.DrillVoxelChecks.DownwardVoxelCheckSizeAmount; i++)
+                for (int i = 0; i < Definition.DrillVoxelChecks.DownwardVoxelCheckSizeAmount; i++)
                 {
                     Vector3 PositionToCheck = Self.WorldMatrix.Translation - Self.WorldMatrix.Down * Definition.DrillVoxelChecks.DownwardVoxelCheckSizeInterval * i;
-
                     GetVoxelsInBox(voxelbaseList, initialVoxelDict, PositionToCheck, Definition.DrillVoxelChecks.DownwardsVoxelCheckSize);
                 }
             }
-            
+            Dictionary<MaterialDefinition, int> Materials = new Dictionary<MaterialDefinition, int>();
             foreach (var m in initialVoxelDict.Keys)
             {
                 var def = MyDefinitionManager.Static.GetVoxelMaterialDefinition(m);
                 if (def != null)
                 {
-                    
+
                     MaterialDefinition d;
                     if (!Config.I.MaterialVoxelDefinitions.TryGetValue(m, out d) &&
                         !Config.I.MaterialOreDefinitions.TryGetValue(def.MinedOre, out d))
                     {
                         continue;
                     }
-                    int miningSpeed;
-                    if (!Definition.DrillBatches.OresPerBatchPerMaterial.TryGetValue(d.Base.SubtypeId, out miningSpeed))
-                        miningSpeed = Definition.DrillBatches.DefaultOresPerBatch;
-                    miningSpeed = (int)(Math.Floor(miningSpeed * Definition.DrillBatches.VoxelAmountMultiplier == 0 ? 1 :
-                        initialVoxelDict[m] * Definition.DrillBatches.VoxelAmountMultiplier));
 
-                    UserChoices.Add(new Material(d, miningSpeed));
+                    if (!Materials.ContainsKey(d))
+                        Materials.Add(d, 0);
+
+                    Materials[d] += initialVoxelDict[m];
                 }
             }
+
+            foreach (var material in Materials)
+            {
+                int miningSpeed;
+                if (!Definition.DrillBatches.OresPerBatchPerMaterial.TryGetValue(material.Key.Base.SubtypeId, out miningSpeed))
+                    miningSpeed = Definition.DrillBatches.DefaultOresPerBatch;
+
+                miningSpeed = (int)Math.Floor(miningSpeed *
+                    (Definition.DrillBatches.VoxelAmountMultiplier == 0 ? 1 :
+                    material.Value * Definition.DrillBatches.VoxelAmountMultiplier));
+
+                if (miningSpeed > 0)
+                {
+                    UserChoices.Add(new Material(material.Key, miningSpeed));
+                }
+            }
+            
 
             CalculatingMaterials = false;
         }
 
         private void GetVoxelsInBox(List<MyVoxelBase> detected, Dictionary<byte, int> materials, Vector3 PositionToCheck, float CheckSize)
         {
-            BoundingBoxD initialVoxelCheck = new BoundingBoxD(PositionToCheck - CheckSize,
-                            PositionToCheck + CheckSize);
+            BoundingBoxD initialVoxelCheck = new BoundingBoxD(PositionToCheck - CheckSize, PositionToCheck + CheckSize);
             MyGamePruningStructure.GetAllVoxelMapsInBox(ref initialVoxelCheck, detected);
             foreach (var m in detected)
             {
                 GetVoxelsInScope(PositionToCheck, CheckSize, m, materials);
             }
-
             detected.Clear();
         }
 
         private void GetVoxelsInScope(Vector3D pos, float size, MyVoxelBase map, Dictionary<byte, int> foundMaterials)
         {
-            const int LOD = 0; // the trolling is immense with this one
+            const int LOD = 2; // the trolling is immense with this one
 
             Vector3D posMin = pos - size;
             Vector3D posMax = pos + size;
@@ -169,13 +263,14 @@ namespace IndustrialSystems.Shared.Blocks
             MyVoxelCoordSystems.WorldPositionToVoxelCoord(map.PositionLeftBottomCorner, ref posMin, out voxelPosMin);
             MyVoxelCoordSystems.WorldPositionToVoxelCoord(map.PositionLeftBottomCorner, ref posMax, out voxelPosMax);
 
-            voxelPosMin = Vector3I.Min(map.StorageMin, voxelPosMin) >> LOD;
-            voxelPosMax = (Vector3I.Min(map.StorageMax, voxelPosMax) >> LOD) - 1;
+            voxelPosMin = Vector3I.Max(map.StorageMin, voxelPosMin) >> LOD;
+            voxelPosMax = Vector3I.Max((Vector3I.Min(map.StorageMax, voxelPosMax) >> LOD) - 1, voxelPosMin);
 
             MyStorageData cache = new MyStorageData(MyStorageDataTypeFlags.ContentAndMaterial);
             cache.Resize(voxelPosMin, voxelPosMax);
 
             map.Storage.ReadRange(cache, MyStorageDataTypeFlags.ContentAndMaterial, LOD, voxelPosMin, voxelPosMax);
+
 
             for (int i = 0; i < cache[MyStorageDataTypeEnum.Content].Length; i++)
             {

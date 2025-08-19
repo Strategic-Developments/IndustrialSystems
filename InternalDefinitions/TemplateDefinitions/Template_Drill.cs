@@ -35,7 +35,7 @@ namespace ISDefinitions
             },
             MachineInventory = new MachineInventoryDef
             {
-                MaxItemsInInventory = 10,
+                MaxItemsInInventory = 250,
                 PowerRequirementOverride = 1,
             },
             GasRequirements = new GasReqDef
@@ -53,20 +53,20 @@ namespace ISDefinitions
             },
             DrillBatches = new DrillBatchDef
             {
-                TimeBetweenBatches = 10,
+                TimeBetweenBatches = 240,
                 DefaultOresPerBatch = 10,
-                VoxelAmountMultiplier = 1,
+                VoxelAmountMultiplier = 0,
                 OresPerBatchPerMaterial = new BatchSettings()
                 {
-                    ["Stone"] = 2,
-                    ["Iron"] = 2,
-                    ["Nickel"] = 2,
+                    ["Stone"] = 10,
+                    ["Iron"] = 10,
+                    ["Nickel"] = 50,
                     ["Cobalt"] = 1,
                 },
             },
             DrillVoxelChecks = new VoxelCheckDef
             {
-                InitialVoxelCheckSize = 25,
+                InitialVoxelCheckSize = 15,
 
                 DownwardsVoxelCheckSize = 250,
                 DownwardVoxelCheckSizeAmount = 1,

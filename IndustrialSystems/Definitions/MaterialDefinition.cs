@@ -5,11 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using VRageMath;
 using static IndustrialSystems.Definitions.DefinitionConstants;
 
 namespace IndustrialSystems.Definitions
 {
-    public class MaterialDefinition : Definition
+    public class MaterialDefinition : Definition, IEquatable<MaterialDefinition>
     {
         public NameDef Base;
         public MaterialDef Material;
@@ -56,7 +57,7 @@ namespace IndustrialSystems.Definitions
         {
             foreach (var kvp in Material.MaterialProperties)
             {
-                sb.Append($"{kvp.Key}: {kvp.Value*100:##.####}%\n");
+                sb.Append($"{kvp.Key}: {kvp.Value * 100:##.####}%\n");
             }
         }
 
@@ -79,6 +80,11 @@ namespace IndustrialSystems.Definitions
                 Base = NameDef.ConvertFromObjectArray((object[])data[1]),
                 Material = MaterialDef.ConvertFromObjectArray((object[])data[2]),
             };
+        }
+
+        public bool Equals(MaterialDefinition other)
+        {
+            return ReferenceEquals(other, this) || (other.Base.SubtypeId == Base.SubtypeId && other.Material.IsMinedOre == Material.IsMinedOre);
         }
     }
     public class MaterialDefinitions : Definition, IEnumerable<MaterialDefinition>

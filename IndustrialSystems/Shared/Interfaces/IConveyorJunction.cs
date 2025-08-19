@@ -8,8 +8,8 @@ using VRage.Game.ModAPI;
 
 namespace IndustrialSystems.Shared.Interfaces
 {
-    public interface IIndustrialSystemMachine // we love polymorphism
+    public interface IConveyorJunction : IIndustrialSystemMachine
     {
-        void Close();
+        bool Link(ConveyorLine line, IMyCubeBlock connector, bool isIncommingConnection);
     }
 }

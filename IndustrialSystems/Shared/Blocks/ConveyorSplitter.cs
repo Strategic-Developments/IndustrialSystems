@@ -12,7 +12,7 @@ using VRageMath;
 
 namespace IndustrialSystems.Shared.Blocks
 {
-    public class ConveyorSplitter : ISBlock<IMyCubeBlock>, IItemConsumer, IItemProducer
+    public class ConveyorSplitter : ISBlock<IMyCubeBlock>, IItemConsumer, IItemProducer, IConveyorJunction
     {
         public ConveyorDefinition.ConveyorDef SplitterDef;
         public ConveyorLine Incoming;
@@ -69,6 +69,28 @@ namespace IndustrialSystems.Shared.Blocks
             }
 
             item = Item.CreateInvalid();
+            return false;
+        }
+
+        public bool Link(ConveyorLine line, IMyCubeBlock connector, bool isIncommingConnection)
+        {
+            Vector3I diff = (connector.Min - Self.Min + connector.Max - Self.Max) / 2;
+
+            Vector3I transformedVector = Self.InverseTransformVector(diff);
+            int connectionVecIndex = Array.IndexOf(SplitterDef.Connections, transformedVector);
+            if (connectionVecIndex == -1)
+                return false;
+
+            if (connectionVecIndex == 0 && isIncommingConnection)
+            {
+                Incoming = line;
+                return true;
+            }
+            else if (!isIncommingConnection)
+            {
+                Outgoing[connectionVecIndex] = line;
+                return true;
+            }
             return false;
         }
     }

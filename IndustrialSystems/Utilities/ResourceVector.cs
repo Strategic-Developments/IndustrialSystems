@@ -71,7 +71,7 @@ namespace IndustrialSystems.Utilities
             }
 
             if (!Map.ContainsKey(s))
-                Map[s] = (byte)(Map.Count + 1);
+                Map[s] = (byte)(Map.Count);
         }
         public float Dot(ResourceVector other)
         {

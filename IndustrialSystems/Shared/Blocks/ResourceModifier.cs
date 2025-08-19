@@ -12,7 +12,7 @@ using static IndustrialSystems.Definitions.DefinitionConstants;
 
 namespace IndustrialSystems.Shared.Blocks
 {
-    public class ResourceModifier : ISBlock<IMyFunctionalBlock>, IItemConsumer, IItemProducer
+    public class ResourceModifier : ISBlock<IMyFunctionalBlock>, IItemConsumer, IItemProducer, IUpdateable
     {
         public readonly ResourceModifierDefinition Definition;
 
@@ -47,7 +47,7 @@ namespace IndustrialSystems.Shared.Blocks
         {
             Self.AppendingCustomInfo -= CustomInfo;
         }
-        public override void Update()
+        public void Update()
         {
             if (InputItem.Amount > Definition.BatchJob.BatchAmount)
             {

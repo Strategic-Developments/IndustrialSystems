@@ -49,17 +49,18 @@ namespace IndustrialSystems
     using HiAristeas = DefinitionDefs.ModularDefinitionContainer;
     using IHopeYouLikeWhatIveDone = DefinitionDefs.ModularPhysicalDefinition;
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, Priority = 0)]
-    public class IndustrialSystemsSessionComponent : MySessionComponentBase
+    public class IndustrialSystemsSessionComp : MySessionComponentBase
     {
-        public static IndustrialSystemsSessionComponent Instance;
+        public static IndustrialSystemsSessionComp I;
         public ModularDefinitionApi ModularApi;
         public Guid StorageGuid;
+        public int DebugLevel = 2;
         public override void LoadData()
         {
             // todo: get a new one
             StorageGuid = new Guid("75afa715-498d-4b33-a486-ccc05aa364b9");
             
-            Instance = this;
+            I = this;
 
             IndustrialSystemManager.Load();
             Network.Load();
@@ -223,7 +224,7 @@ namespace IndustrialSystems
             Network.Unload();
             Config.Unload();
             ChatCommands.Unload();
-            Instance = null;
+            I = null;
         }
         public override void SaveData()
         {

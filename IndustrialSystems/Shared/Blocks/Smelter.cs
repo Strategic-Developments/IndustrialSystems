@@ -11,7 +11,7 @@ using VRage.Game.ModAPI;
 
 namespace IndustrialSystems.Shared.Blocks
 {
-    public class Smelter : ISBlock<IMyFunctionalBlock>, IItemConsumer, IItemProducer
+    public class Smelter : ISBlock<IMyFunctionalBlock>, IItemConsumer, IItemProducer, IUpdateable
     {
         public readonly SmelterDefinition Definition;
 
@@ -44,7 +44,7 @@ namespace IndustrialSystems.Shared.Blocks
         {
             Self.AppendingCustomInfo -= CustomInfo;
         }
-        public override void Update()
+        public void Update()
         {
             if (InputItem.Amount > Definition.BatchJob.BatchAmount)
             {

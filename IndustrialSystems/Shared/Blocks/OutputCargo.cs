@@ -17,7 +17,7 @@ using KeenItem = VRage.MyTuple<VRage.Game.MyObjectBuilder_PhysicalObject, VRage.
 namespace IndustrialSystems.Shared.Blocks
 {
 
-    public class OutputCargo : ISBlock<IMyCargoContainer>, IItemConsumer
+    public class OutputCargo : ISBlock<IMyCargoContainer>, IItemConsumer, IUpdateable
     {
         public readonly OutputCargoDefinition Definition;
 
@@ -61,11 +61,9 @@ namespace IndustrialSystems.Shared.Blocks
             }
         }
 
-        public override void Update()
+        public void Update()
         {
-            base.Update();
-
-            if (MyAPIGateway.Session.GameplayFrameCounter % 100 == TickOffset)
+            if (MyAPIGateway.Multiplayer.IsServer && MyAPIGateway.Session.GameplayFrameCounter % 100 == TickOffset)
             {
                 foreach (var i in ItemsToAdd.Values)
                 {
@@ -84,6 +82,12 @@ namespace IndustrialSystems.Shared.Blocks
 
         void IItemConsumer.AcceptItem(Item item)
         {
+            if (!MyAPIGateway.Multiplayer.IsServer)
+            {
+                return;
+            }
+
+
             switch (item.Type)
             {
                 case DefinitionConstants.ItemType.Ore:

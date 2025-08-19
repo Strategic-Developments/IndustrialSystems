@@ -1,5 +1,7 @@
 ﻿using IndustrialSystems.Shared.Interfaces;
 using IndustrialSystems.Utilities;
+using Sandbox.Game.Entities;
+using Sandbox.Game.Entities.Cube;
 using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
@@ -8,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using VRage;
 using VRage.Game.ModAPI;
+using VRage.Utils;
 using VRageMath;
 
 namespace IndustrialSystems.Shared
@@ -18,6 +21,7 @@ namespace IndustrialSystems.Shared
 
         public Dictionary<int, IndustrialSystem> Systems;
         public ObjectPool<List<FluidContainer>> FluidsObjectPool;
+        public Dictionary<long, IIndustrialSystemMachine> AllMachines;
         public static void Load()
         {
             I = new IndustrialSystemManager
@@ -27,10 +31,20 @@ namespace IndustrialSystems.Shared
                     () => new List<FluidContainer>(),
                     startSize: 10
                     ),
+                AllMachines = new Dictionary<long, IIndustrialSystemMachine>(),
             };
+            
         }
         public static void Unload()
         {
+            foreach (var machine in I.AllMachines)
+            {
+                machine.Value.Close();
+            }
+
+
+            I.AllMachines.Clear();
+
             I = null;
         }
         public void OnPartAdd(int assemblyId, IMyCubeBlock block, bool isBasePart)
@@ -61,6 +75,40 @@ namespace IndustrialSystems.Shared
                 foreach (var updatable in system.UpdateableBlocks)
                     updatable.Update();
             });
+
+            if (IndustrialSystemsSessionComp.I.DebugLevel >= 2)
+            {
+                try
+                {
+                    foreach (var currentConv in AllConveyors(Systems.Values))
+                    {
+                        if (currentConv.Items.Count == 0)
+                        {
+                            foreach (var block in currentConv.Path)
+                            {
+                                if (block == null)
+                                    continue;
+
+                                ((MyCubeGrid)block.CubeGrid).ChangeColorAndSkin(((MyCubeGrid)block.CubeGrid).GetCubeBlock(block.Position), Vector3.Zero);
+                            }
+                        }
+                        else
+                        {
+                            foreach (var block in currentConv.Path)
+                            {
+                                if (block == null)
+                                    continue;
+
+                                ((MyCubeGrid)block.CubeGrid).ChangeColorAndSkin(((MyCubeGrid)block.CubeGrid).GetCubeBlock(block.Position), Vector3.One);
+                            }
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MyLog.Default.Error(ex.ToString());
+                }
+            }
         }
         public void UpdatePipes()
         {

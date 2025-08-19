@@ -54,9 +54,8 @@ namespace IndustrialSystems.Utilities
 
             if (!_idMap.TryGetValue(vec, out _composition))
             {
-                _composition = (ushort)_idMap.Count;
+                _composition = (ushort)(_idMap.Count + 1);
                 _idMap[vec] = _composition;
-
                 _vectorMap[_composition] = vec;
             }
         }
@@ -82,7 +81,7 @@ namespace IndustrialSystems.Utilities
 
         public bool IsInvalid()
         {
-            return _composition != 0 && Type != ItemType.None;
+            return _composition == 0 && Type == ItemType.None;
         }
     }
 
@@ -116,6 +115,13 @@ namespace IndustrialSystems.Utilities
 
         public void AppendInventoryInformation(StringBuilder sb)
         {
+
+            if (Amount == 0 || Item.IsInvalid())
+            {
+                sb.Append($"No item.");
+                return;
+            }
+
             sb.Append($"{Amount}kg of {Item}\n");
         }
 

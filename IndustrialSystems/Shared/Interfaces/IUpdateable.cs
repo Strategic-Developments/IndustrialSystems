@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IndustrialSystems.Shared.Interfaces
 {
-    public interface IUpdateable
+    public interface IUpdateable : IIndustrialSystemMachine
     {
         void Update();
     }

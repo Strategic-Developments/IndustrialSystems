@@ -29,10 +29,5 @@ namespace IndustrialSystems.Shared
         {
             
         }
-
-        public bool IsBlockAPartOf(IMyCubeBlock block)
-        {
-            return Path.Contains(block);
-        }
     }
 }
