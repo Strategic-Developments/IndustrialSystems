@@ -13,11 +13,13 @@ using VRage.Game.ModAPI;
 using VRage.ModAPI;
 using VRage.ObjectBuilders;
 using KeenItem = VRage.MyTuple<VRage.Game.MyObjectBuilder_PhysicalObject, VRage.MyFixedPoint>;
+using VRage.Utils;
+using Ingame = VRage.Game.ModAPI.Ingame;
 
 namespace IndustrialSystems.Shared.Blocks
 {
 
-    public class OutputCargo : ISBlock<IMyCargoContainer>, IItemConsumer, IUpdateable
+    public class OutputCargo : Block<IMyCargoContainer>, IItemConsumer, IUpdateable
     {
         public readonly OutputCargoDefinition Definition;
 
@@ -39,25 +41,54 @@ namespace IndustrialSystems.Shared.Blocks
         {
 
         }
-        private void FillItemsToAdd<TObj>(ref Item item) where TObj : MyObjectBuilder_PhysicalObject, new()
+        private void FillItemsToAdd<TObj>(ref Item item, bool onlyAddMost) where TObj : MyObjectBuilder_PhysicalObject, new()
         {
-            foreach (var kvp in ResourceVector.Map)
+            if (onlyAddMost)
             {
-                var defId = MyDefinitionId.Parse($"{typeof(TObj)}/{kvp.Key}");
-                KeenItem it;
-                if (!ItemsToAdd.TryGetValue(defId, out it))
+                string largestKey = null;
+                float largestValue = 0;
+
+                foreach (var kvp in ResourceVector.Map)
                 {
-                    ItemsToAdd.Add(defId, new KeenItem
+                    if (item.Composition.Vector[kvp.Value] > largestValue)
                     {
-                        Item1 = MyObjectBuilderSerializer.CreateNewObject<TObj>(kvp.Key),
-                        Item2 = (MyFixedPoint)item.Composition.Vector[kvp.Value],
-                    });
+                        largestValue = item.Composition.Vector[kvp.Value];
+                        largestKey = kvp.Key;
+                    }
                 }
-                else
+                if (largestKey != null)
                 {
-                    it.Item2 += (MyFixedPoint)item.Composition.Vector[kvp.Value];
-                    ItemsToAdd[defId] = it;
+                    AddItem<TObj>(largestKey, largestValue);
                 }
+            }
+            else
+            {
+                foreach (var kvp in ResourceVector.Map)
+                {
+                    AddItem<TObj>(kvp.Key, item.Composition.Vector[kvp.Value]);
+                }
+            }
+        }
+
+        private void AddItem<TObj>(string item, float amount) where TObj : MyObjectBuilder_PhysicalObject, new()
+        {
+            if (amount <= 0)
+                return;
+
+            var defId = MyDefinitionId.Parse($"{typeof(TObj).Name}/{item}");
+            KeenItem it;
+            if (!ItemsToAdd.TryGetValue(defId, out it))
+            {
+                ItemsToAdd.Add(defId, new KeenItem
+                {
+                    Item1 = MyObjectBuilderSerializer.CreateNewObject<TObj>(item),
+                    Item2 = (MyFixedPoint)amount,
+                });
+            }
+            else
+            {
+                it.Item2 += (MyFixedPoint)amount;
+                ItemsToAdd[defId] = it;
             }
         }
 
@@ -67,7 +98,7 @@ namespace IndustrialSystems.Shared.Blocks
             {
                 foreach (var i in ItemsToAdd.Values)
                 {
-                    if (!DepositInventory.CanItemsBeAdded(i.Item2, i.Item1))
+                    if (DepositInventory.CanItemsBeAdded(i.Item2, i.Item1))
                     {
                         DepositInventory.AddItems(i.Item2, i.Item1);
                     }
@@ -91,10 +122,10 @@ namespace IndustrialSystems.Shared.Blocks
             switch (item.Type)
             {
                 case DefinitionConstants.ItemType.Ore:
-                    FillItemsToAdd<MyObjectBuilder_Ore>(ref item);
+                    FillItemsToAdd<MyObjectBuilder_Ore>(ref item, true);
                     break;
                 case DefinitionConstants.ItemType.Ingot:
-                    FillItemsToAdd<MyObjectBuilder_Ingot>(ref item);
+                    FillItemsToAdd<MyObjectBuilder_Ingot>(ref item, false);
                     break;
             }
         }

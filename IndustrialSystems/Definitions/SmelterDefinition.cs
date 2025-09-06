@@ -10,7 +10,6 @@ namespace IndustrialSystems.Definitions
 {
     public class SmelterDefinition : Definition
     {
-        public NameDef Base;
         public MachineInventoryDef MachineInventory;
         public BatchJobDef BatchJob;
         public SmelterOreMultDef SmelterStats;
@@ -26,6 +25,10 @@ namespace IndustrialSystems.Definitions
             /// Value: Alternate multiplier for the given ore
             /// </summary>
             public Dictionary<string, float> SmelterOreMultipliers;
+            /// <summary>
+            /// Minimum ore percentage needed to smelt.
+            /// </summary>
+            public float MinimumOreRequired;
 
             public object[] ConvertToObjectArray()
             {
@@ -33,6 +36,7 @@ namespace IndustrialSystems.Definitions
                 {
                     DefaultOreMultiplier,
                     SmelterOreMultipliers,
+                    MinimumOreRequired,
                 };
             }
 
@@ -42,6 +46,7 @@ namespace IndustrialSystems.Definitions
                 {
                     DefaultOreMultiplier = (float)data[0],
                     SmelterOreMultipliers = (Dictionary<string, float>)data[1],
+                    MinimumOreRequired = (float)data[2],
                 };
             }
         }

@@ -2,10 +2,12 @@
 using IndustrialSystems.Shared.Blocks;
 using IndustrialSystems.Shared.Interfaces;
 using IndustrialSystems.Utilities;
+using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using System.Collections.Generic;
 using System.Linq;
 using VRage.Game.ModAPI;
+using VRage.ModAPI;
 using VRageMath;
 using VRageRender;
 using VRageRender.Messages;
@@ -14,7 +16,7 @@ namespace IndustrialSystems.Shared
 {
     public class IndustrialSystem
     {
-        public int ModularId;
+        public IMyCubeGrid Grid;
 
         public HashSet<ConveyorLine> AllConveyorLines;
         public HashSet<ConveyorLine> BackConveyorLines;
@@ -22,24 +24,60 @@ namespace IndustrialSystems.Shared
         public HashSet<Pipeline> AllPipes;
 
         public HashSet<IUpdateable> UpdateableBlocks;
-
-        public IndustrialSystem(int modularId)
+        public Dictionary<long, IIndustrialSystemMachine> AllMachines;
+        public IndustrialSystem(IMyCubeGrid grid)
         {
-            this.ModularId = modularId;
+            Grid = grid;
 
             AllConveyorLines = new HashSet<ConveyorLine>();
             BackConveyorLines = new HashSet<ConveyorLine>();
             AllPipes = new HashSet<Pipeline>();
             UpdateableBlocks = new HashSet<IUpdateable>();
+            AllMachines = new Dictionary<long, IIndustrialSystemMachine>();
+
+            Grid.OnBlockRemoved += OnBlockRemoved;
+            Grid.OnClose += OnClose;
+            Grid.OnBlockAdded += OnBlockAdd;
+
+            Grid.GetBlocks(null, OnBlockAdded);
         }
 
-
-
-        public void AddPart(IMyCubeBlock b)
+        private void OnClose(IMyEntity ent)
         {
-            Definition blockdef = Config.I.BlockDefinitions.GetValueOrDefault(b.BlockDefinition.SubtypeName, null);
-            if (blockdef != null)
+            Grid.OnBlockRemoved -= OnBlockRemoved;
+            Grid.OnClose -= OnClose;
+            Grid.OnBlockAdded -= OnBlockAdd;
+
+            AllConveyorLines = null;
+            BackConveyorLines = null;
+            AllPipes = null;
+            UpdateableBlocks = null;
+            AllMachines = null;
+
+            IndustrialSystemManager.I.Systems.Remove(ent.EntityId);
+        }
+        private bool OnBlockAdded(IMySlimBlock obj)
+        {
+            OnBlockAdd(obj);
+            return false;
+        }
+        private void OnBlockAdd(IMySlimBlock obj)
+        {
+            IMyCubeBlock b = obj.FatBlock;
+
+            if (b == null)
+                return;
+
+
+            Definition blockdef;
+            if (Config.I.BlockDefinitions.TryGetValue(b.BlockDefinition.SubtypeId, out blockdef))
             {
+                IIndustrialSystemMachine other;
+                if (AllMachines.TryGetValue(b.EntityId, out other))
+                {
+                    RemoveBlock(b, other);
+                }
+
                 bool BackConveyorsNeedRecompute = false;
 
                 IIndustrialSystemMachine newMachine = null;
@@ -52,7 +90,7 @@ namespace IndustrialSystems.Shared
                     {
                         BackConveyorsNeedRecompute = true;
                         // TODO: Actually optimize this
-                        var Conveyor = new ConveyorLine(conveyordef.Conveyors.ItemTravelFrequency, new List<IMyCubeBlock> { b });
+                        var Conveyor = new ConveyorLine(conveyordef.Conveyors.ItemTravelFrequency, new List<IMyCubeBlock> { b }, this);
                         AllConveyorLines.Add(Conveyor);
 
                         newMachine = Conveyor;
@@ -72,7 +110,7 @@ namespace IndustrialSystems.Shared
                         if (IndustrialSystemsSessionComp.I.DebugLevel >= 1)
                             ChatCommands.ShowMessage("Added merger");
                     }
-                    else if(IndustrialSystemsSessionComp.I.DebugLevel >= 1)
+                    else if (IndustrialSystemsSessionComp.I.DebugLevel >= 1)
                     {
                         ChatCommands.ShowMessage($"Conveyor add fail! {conveyordef.Conveyors.Connections.Length}");
                     }
@@ -126,20 +164,33 @@ namespace IndustrialSystems.Shared
 
                 if (updatable != null)
                     UpdateableBlocks.Add(updatable);
-                IndustrialSystemManager.I.AllMachines.Add(b.EntityId, newMachine);
+                AllMachines.Add(b.EntityId, newMachine);
 
-                var nearby = IndustrialSystemsSessionComp.I.ModularApi.GetConnectedBlocks(b, "IndustrialSystems", false);
-                foreach (var near in nearby)
+                var neighbors = IndustrialSystemManager.I.SlimBlockObjectPool.Pop();
+                b.SlimBlock.GetNeighbours(neighbors);
+                foreach (var nearBlock in neighbors)
                 {
+                    var near = nearBlock.FatBlock;
+
+                    if (near == null)
+                        continue;
+
                     IIndustrialSystemMachine machine = null;
-                    if (IndustrialSystemManager.I.AllMachines.TryGetValue(near.EntityId, out machine) && machine is ConveyorLine)
+                    if (AllMachines.TryGetValue(near.EntityId, out machine))
                     {
-                        BackConveyorsNeedRecompute = true;
-                        ((ConveyorLine)machine).ComputeNeighbors();
+                        if (machine is ConveyorLine)
+                        {
+                            BackConveyorsNeedRecompute = true;
+                            ((ConveyorLine)machine).RecomputeNeighbors();
+                        }
                     }
                     if (IndustrialSystemsSessionComp.I.DebugLevel >= 1)
                         ChatCommands.ShowMessage("neighbor");
                 }
+                neighbors.Clear();
+                IndustrialSystemManager.I.SlimBlockObjectPool.Push(neighbors);
+
+
                 if (BackConveyorsNeedRecompute)
                 {
                     BackConveyorLines.Clear();
@@ -149,32 +200,40 @@ namespace IndustrialSystems.Shared
                     }
                 }
             }
-            else if (IndustrialSystemsSessionComp.I.DebugLevel >= 1)
+        }
+
+
+        public void OnBlockRemoved(IMySlimBlock bl)
+        {
+            IMyCubeBlock b = bl.FatBlock;
+            if (b == null)
+                return;
+
+            IIndustrialSystemMachine machineToKill = null;
+            if (AllMachines.TryGetValue(b.EntityId, out machineToKill))
             {
-                ChatCommands.ShowMessage($"Failed to add {b.BlockDefinition.SubtypeName}");
+                RemoveBlock(b, machineToKill);
             }
         }
 
-        
-
-        public void RemovePart(IMyCubeBlock b)
+        private void RemoveBlock(IMyCubeBlock b, IIndustrialSystemMachine machineToKill)
         {
-            IIndustrialSystemMachine machineToKill = null;
-            if (IndustrialSystemManager.I.AllMachines.TryGetValue(b.EntityId, out machineToKill))
+            machineToKill.Close();
+            AllMachines.Remove(b.EntityId);
+            if (machineToKill is IUpdateable)
+                UpdateableBlocks.Remove((IUpdateable)machineToKill);
+            if (machineToKill is ConveyorLine)
             {
-                machineToKill.Close();
-                IndustrialSystemManager.I.AllMachines.Remove(b.EntityId);
-                if (machineToKill is IUpdateable)
-                    UpdateableBlocks.Remove((IUpdateable)machineToKill);
-                else if (machineToKill is ConveyorLine)
+                AllConveyorLines.Remove((ConveyorLine)machineToKill);
+                BackConveyorLines.Clear();
+                foreach (var c in AllConveyorLines.Where((co) => !(co.Destination is ConveyorLine)))
                 {
-                    AllConveyorLines.Remove((ConveyorLine)machineToKill);
-                    BackConveyorLines.Remove((ConveyorLine)machineToKill);
+                    BackConveyorLines.Add(c);
                 }
-                else if (machineToKill is Pipeline)
-                {
-                    AllPipes.Remove((Pipeline)machineToKill);
-                }
+            }
+            if (machineToKill is Pipeline)
+            {
+                AllPipes.Remove((Pipeline)machineToKill);
             }
         }
     }

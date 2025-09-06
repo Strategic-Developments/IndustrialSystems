@@ -13,21 +13,24 @@ using VRageMath;
 using Sandbox.ModAPI.Interfaces.Terminal;
 using VRage.Utils;
 using VRage.ModAPI;
+using Sandbox.Engine.Voxels;
 
 
 namespace IndustrialSystems.Shared.Blocks
 {
     using Material = VRage.MyTuple<MaterialDefinition, int>;
-    public class Drill : ISBlock<IMyFunctionalBlock>, IItemProducer, IUpdateable
+    public class Drill : Block<IMyFunctionalBlock>, IItemProducer, IUpdateable
     {
         public readonly DrillDefinition Definition;
 
+        private bool HasScanned;
         public bool CalculatingMaterials;
 
         public bool HasOreSelected;
 
         public Material SelectedChoice;
         public readonly List<Material> UserChoices;
+        private Vector3D ScanPosition;
 
         public int NextBatchCounter;
         public InventoryItem OutputItem;
@@ -41,11 +44,13 @@ namespace IndustrialSystems.Shared.Blocks
             UserChoices = new List<Material>();
 
             HasOreSelected = false;
+            HasScanned = false;
 
             Self.AppendingCustomInfo += CustomInfo;
 
             if (MyAPIGateway.Multiplayer.IsServer)
             {
+                ScanPosition = self.GetPosition();
                 MyAPIGateway.Parallel.Start(CalculateAvailableMaterials);
             }
         }
@@ -53,7 +58,7 @@ namespace IndustrialSystems.Shared.Blocks
         {
             Self.AppendingCustomInfo -= CustomInfo;
         }
-        public void CreateTerminalControls()
+        public static void CreateTerminalControls()
         {
             CreatedTerminalControls = true;
             var list = MyAPIGateway.TerminalControls.CreateControl<IMyTerminalControlListbox, IMyShipDrill>("IndustrialSystems_DrillListBox");
@@ -66,8 +71,13 @@ namespace IndustrialSystems.Shared.Blocks
             list.Multiselect = false; // wether player can select muliple at once (ctrl+click, click&shift+click, etc)
             list.ListContent = (b, content, preSelect) =>
             {
+                IndustrialSystem ParentSystem;
+
+                if (!IndustrialSystemManager.I.Systems.TryGetValue(b.CubeGrid.EntityId, out ParentSystem))
+                    return;
+
                 IIndustrialSystemMachine machine;
-                if (IndustrialSystemManager.I.AllMachines.TryGetValue(b.EntityId, out machine) && machine is Drill)
+                if (ParentSystem.AllMachines.TryGetValue(b.EntityId, out machine) && machine is Drill)
                 {
                     Drill d = (Drill)machine;
 
@@ -80,7 +90,7 @@ namespace IndustrialSystems.Shared.Blocks
                         return;
                     }
 
-                    foreach (var choice in UserChoices)
+                    foreach (var choice in d.UserChoices)
                     {
                         var listItem = new MyTerminalControlListBoxItem(
                             text: MyStringId.GetOrCompute($"{choice.Item1.Material.DisplayName}"),
@@ -88,10 +98,10 @@ namespace IndustrialSystems.Shared.Blocks
                             userData: choice.Item1.Base.SubtypeId);
                         content.Add(listItem);
 
-                        if (SelectedChoice.Item1 == null)
+                        if (d.SelectedChoice.Item1 == null)
                             continue;
 
-                        if (SelectedChoice.Item1 == choice.Item1)
+                        if (d.SelectedChoice.Item1 == choice.Item1)
                         {
                             preSelect.Add(listItem);
                         }
@@ -100,8 +110,13 @@ namespace IndustrialSystems.Shared.Blocks
             };
             list.ItemSelected = (b, selected) =>
             {
+                IndustrialSystem ParentSystem;
+
+                if (!IndustrialSystemManager.I.Systems.TryGetValue(b.CubeGrid.EntityId, out ParentSystem))
+                    return;
+
                 IIndustrialSystemMachine machine;
-                if (IndustrialSystemManager.I.AllMachines.TryGetValue(b.EntityId, out machine) && machine is Drill)
+                if (ParentSystem.AllMachines.TryGetValue(b.EntityId, out machine) && machine is Drill)
                 {
                     Drill d = (Drill)machine;
 
@@ -111,7 +126,7 @@ namespace IndustrialSystems.Shared.Blocks
                         return;
                     }
 
-                    SelectMaterial((string)selected[0].UserData);
+                    d.SelectMaterial((string)selected[0].UserData);
                 }
 
             };
@@ -195,9 +210,17 @@ namespace IndustrialSystems.Shared.Blocks
 
             if (initialVoxelDict.Count > 0)
             {
+                float interference;
+                Vector3 down = MyAPIGateway.Physics.CalculateNaturalGravityAt(Self.WorldMatrix.Translation, out interference);
+
+                if (down == Vector3.Zero || Definition.DrillVoxelChecks.UseNaturalGravityForDown)
+                {
+                    down = Self.WorldMatrix.Down;
+                }
+
                 for (int i = 0; i < Definition.DrillVoxelChecks.DownwardVoxelCheckSizeAmount; i++)
                 {
-                    Vector3 PositionToCheck = Self.WorldMatrix.Translation - Self.WorldMatrix.Down * Definition.DrillVoxelChecks.DownwardVoxelCheckSizeInterval * i;
+                    Vector3 PositionToCheck = Self.WorldMatrix.Translation - down * Definition.DrillVoxelChecks.DownwardVoxelCheckSizeInterval * i;
                     GetVoxelsInBox(voxelbaseList, initialVoxelDict, PositionToCheck, Definition.DrillVoxelChecks.DownwardsVoxelCheckSize);
                 }
             }
@@ -240,11 +263,24 @@ namespace IndustrialSystems.Shared.Blocks
             
 
             CalculatingMaterials = false;
+            HasScanned = true;
         }
 
         private void GetVoxelsInBox(List<MyVoxelBase> detected, Dictionary<byte, int> materials, Vector3 PositionToCheck, float CheckSize)
         {
             BoundingBoxD initialVoxelCheck = new BoundingBoxD(PositionToCheck - CheckSize, PositionToCheck + CheckSize);
+
+            if (IndustrialSystemsSessionComp.I.DebugLevel >= 1)
+            {
+                for (int i = 0; i < 8; i++)
+                {
+                    MyAPIGateway.Session.GPS.AddLocalGps(
+                    MyAPIGateway.Session.GPS.Create(i.ToString(), "", initialVoxelCheck.GetCorner(i), true));
+                }
+
+                
+            }
+
             MyGamePruningStructure.GetAllVoxelMapsInBox(ref initialVoxelCheck, detected);
             foreach (var m in detected)
             {
@@ -268,9 +304,8 @@ namespace IndustrialSystems.Shared.Blocks
 
             MyStorageData cache = new MyStorageData(MyStorageDataTypeFlags.ContentAndMaterial);
             cache.Resize(voxelPosMin, voxelPosMax);
-
+            
             map.Storage.ReadRange(cache, MyStorageDataTypeFlags.ContentAndMaterial, LOD, voxelPosMin, voxelPosMax);
-
 
             for (int i = 0; i < cache[MyStorageDataTypeEnum.Content].Length; i++)
             {

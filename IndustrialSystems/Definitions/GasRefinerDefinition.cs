@@ -12,7 +12,6 @@ namespace IndustrialSystems.Definitions
 {
     public class GasRefinerDefinition : Definition
     {
-        public NameDef Base;
         public MachineInventoryDef MachineInventory;
         public BatchJobDef BatchJob;
         /// <summary>

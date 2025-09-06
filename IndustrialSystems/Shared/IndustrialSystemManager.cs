@@ -1,4 +1,5 @@
-﻿using IndustrialSystems.Shared.Interfaces;
+﻿using IndustrialSystems.Definitions;
+using IndustrialSystems.Shared.Interfaces;
 using IndustrialSystems.Utilities;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
@@ -9,7 +10,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using VRage;
+using VRage.Game;
 using VRage.Game.ModAPI;
+using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
@@ -19,52 +22,55 @@ namespace IndustrialSystems.Shared
     {
         public static IndustrialSystemManager I;
 
-        public Dictionary<int, IndustrialSystem> Systems;
+        public Dictionary<long, IndustrialSystem> Systems;
         public ObjectPool<List<FluidContainer>> FluidsObjectPool;
-        public Dictionary<long, IIndustrialSystemMachine> AllMachines;
+        public ObjectPool<List<IMySlimBlock>> SlimBlockObjectPool;
+
         public static void Load()
         {
             I = new IndustrialSystemManager
             {
-                Systems = new Dictionary<int, IndustrialSystem>(),
+                Systems = new Dictionary<long, IndustrialSystem>(),
                 FluidsObjectPool = new ObjectPool<List<FluidContainer>>(
                     () => new List<FluidContainer>(),
                     startSize: 10
                     ),
-                AllMachines = new Dictionary<long, IIndustrialSystemMachine>(),
+                SlimBlockObjectPool = new ObjectPool<List<IMySlimBlock>>(
+                    () => new List<IMySlimBlock>(),
+                    startSize: 10
+                    ),
             };
-            
+
+
+            MyAPIGateway.Entities.OnEntityAdd += I.OnEntityAdd;
+        }
+
+        private void OnEntityAdd(IMyEntity obj)
+        {
+            if (obj is IMyCubeGrid)
+            {
+                if (obj.Physics == null)
+                {
+                    return;
+                }
+                IMyCubeGrid grid = obj as IMyCubeGrid;
+
+                Systems.Add(grid.EntityId, new IndustrialSystem(grid));
+
+                
+            }
         }
         public static void Unload()
         {
-            foreach (var machine in I.AllMachines)
+            MyAPIGateway.Entities.OnEntityAdd -= I.OnEntityAdd;
+
+            foreach (var machine in I.AllMachines(I.Systems.Values))
             {
-                machine.Value.Close();
+                machine.Close();
             }
 
-
-            I.AllMachines.Clear();
-
+            I.Systems.Clear();
             I = null;
-        }
-        public void OnPartAdd(int assemblyId, IMyCubeBlock block, bool isBasePart)
-        {
-            if (!Systems.ContainsKey(assemblyId))
-                Systems.Add(assemblyId, new IndustrialSystem(assemblyId));
-
-            Systems[assemblyId].AddPart(block);
-        }
-        public void OnPartRemove(int assemblyId, IMyCubeBlock block, bool isBasePart)
-        {
-            if (!Systems.ContainsKey(assemblyId))
-                return;
-
-            Systems[assemblyId].RemovePart(block);
-        }
-
-        public void OnAssemblyDestroy(int assemblyId)
-        {
-            Systems.Remove(assemblyId);
         }
 
         public void Update()
@@ -89,7 +95,7 @@ namespace IndustrialSystems.Shared
                                 if (block == null)
                                     continue;
 
-                                ((MyCubeGrid)block.CubeGrid).ChangeColorAndSkin(((MyCubeGrid)block.CubeGrid).GetCubeBlock(block.Position), Vector3.Zero);
+                                ((MyCubeGrid)block.CubeGrid).ChangeColorAndSkin(((MyCubeGrid)block.CubeGrid).GetCubeBlock(block.Position), new Vector3(-0.5f, 1, 1));
                             }
                         }
                         else
@@ -99,9 +105,45 @@ namespace IndustrialSystems.Shared
                                 if (block == null)
                                     continue;
 
-                                ((MyCubeGrid)block.CubeGrid).ChangeColorAndSkin(((MyCubeGrid)block.CubeGrid).GetCubeBlock(block.Position), Vector3.One);
+                                ((MyCubeGrid)block.CubeGrid).ChangeColorAndSkin(((MyCubeGrid)block.CubeGrid).GetCubeBlock(block.Position), new Vector3(0.5f, 1, 1) / currentConv.DistanceToInsertAtStart);
                             }
                         }
+                        if (currentConv.Destination != null)
+                        {
+                            Vector4 colorRed = Color.Red;
+                            MySimpleObjectDraw.DrawLine(currentConv.Path[0].GetPosition(), currentConv.Destination.GetPosition(),
+                                MyStringId.GetOrCompute("WeaponLaser"), ref colorRed, 1, VRageRender.MyBillboard.BlendTypeEnum.AdditiveTop);
+                        }
+                        else
+                        {
+                            Vector4 colorRed = Color.Red;
+                            MySimpleObjectDraw.DrawLine(currentConv.Path[0].GetPosition(), Vector3D.Zero,
+                                MyStringId.GetOrCompute("WeaponLaser"), ref colorRed, 1, VRageRender.MyBillboard.BlendTypeEnum.AdditiveTop);
+                        }
+                        if (currentConv.Start != null)
+                        {
+                            Vector4 colorGreen = Color.Green;
+                            MySimpleObjectDraw.DrawLine(currentConv.Path[0].GetPosition(), currentConv.Start.GetPosition(),
+                                MyStringId.GetOrCompute("WeaponLaser"), ref colorGreen, 1, VRageRender.MyBillboard.BlendTypeEnum.AdditiveTop);
+                        }
+                        else
+                        {
+                            Vector4 colorGreen = Color.Green;
+                            MySimpleObjectDraw.DrawLine(currentConv.Path[0].GetPosition(), Vector3D.Zero,
+                                MyStringId.GetOrCompute("WeaponLaser"), ref colorGreen, 1, VRageRender.MyBillboard.BlendTypeEnum.AdditiveTop);
+                        }
+
+
+                    }
+
+                    foreach (var currentConv in BackConveyors(Systems.Values))
+                    {
+                        Color colorBlue = Color.Blue;
+                        BoundingBoxD box = new BoundingBoxD(new Vector3D(-1.25), new Vector3D(1.25));
+                        MatrixD wm = currentConv.Path[0].WorldMatrix;
+                        MySimpleObjectDraw.DrawTransparentBox(ref wm, ref box,
+                            ref colorBlue, MySimpleObjectRasterizer.Wireframe, 1, 0.1f, null, MyStringId.GetOrCompute("WeaponLaser"),
+                            false, -1, VRageRender.MyBillboard.BlendTypeEnum.AdditiveTop);
                     }
                 }
                 catch (Exception ex)
@@ -127,7 +169,7 @@ namespace IndustrialSystems.Shared
         }
         public void UpdateConveyors()
         {
-            MyAPIGateway.Parallel.ForEach(AllConveyors(Systems.Values), (conv) =>
+            MyAPIGateway.Parallel.ForEach(BackConveyors(Systems.Values), (conv) =>
             {
                 int iter = 0;
                 ConveyorLine currentConv = conv;
@@ -177,6 +219,7 @@ namespace IndustrialSystems.Shared
                                 }
                                 break;
                             }
+                            continue;
                         }
 
                         ConveyorLine nextConv = (ConveyorLine)nextBlock;
@@ -207,7 +250,7 @@ namespace IndustrialSystems.Shared
                         break;
                     }
                     else if (currentConv.Start is IItemProducer
-                            && currentConv.DistanceToInsertAtStart > currentConv.Frequency)
+                            && currentConv.DistanceToInsertAtStart >= currentConv.Frequency)
                     {
                         IItemProducer prod = (IItemProducer)currentConv.Start;
 
@@ -227,11 +270,22 @@ namespace IndustrialSystems.Shared
                 while (currentConv != null);
             });
         }
-        private IEnumerable<ConveyorLine> AllConveyors(ICollection<IndustrialSystem> systems)
+        private IEnumerable<ConveyorLine> BackConveyors(ICollection<IndustrialSystem> systems)
         {
             foreach (var system in systems)
             {
                 foreach (var conv in system.BackConveyorLines)
+                {
+                    yield return conv;
+                }
+            }
+        }
+
+        private IEnumerable<ConveyorLine> AllConveyors(ICollection<IndustrialSystem> systems)
+        {
+            foreach (var system in systems)
+            {
+                foreach (var conv in system.AllConveyorLines)
                 {
                     yield return conv;
                 }
@@ -245,6 +299,17 @@ namespace IndustrialSystems.Shared
                 foreach (var pipe in system.AllPipes)
                 {
                     yield return pipe;
+                }
+            }
+        }
+
+        private IEnumerable<IIndustrialSystemMachine> AllMachines(ICollection<IndustrialSystem> systems)
+        {
+            foreach (var system in systems)
+            {
+                foreach (var machine in system.AllMachines.Values)
+                {
+                    yield return machine;
                 }
             }
         }

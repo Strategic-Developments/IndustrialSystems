@@ -1,12 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using VRage.Game;
-using VRage.Game.Components;
-using VRage.ModAPI;
-using VRage.Utils;
 using VRage;
 using VRageMath;
 
@@ -21,6 +14,8 @@ namespace IndustrialSystems.Definitions
     }
     public abstract class Definition : IPackagable
     {
+        public NameDef Base;
+
         /// <summary>
         /// Need to use object[] because I don't want to make an API just to transfer delegates
         /// </summary>
@@ -129,6 +124,8 @@ namespace IndustrialSystems.Definitions
     public static class DefinitionConstants
     {
         public const long MessageHandlerId = 10481;
+        public const ushort DefinitionSendSignal = 323;
+        public const ushort ReadyToSendDefinitions = 343;
 
         /// <summary>
         /// Internal use enum, don't worry about it

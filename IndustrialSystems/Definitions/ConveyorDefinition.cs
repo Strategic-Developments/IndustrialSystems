@@ -12,7 +12,6 @@ namespace IndustrialSystems.Definitions
 {
     public class ConveyorDefinition : Definition
     {
-        public NameDef Base;
         public ConveyorDef Conveyors;
         public struct ConveyorDef : IPackagable
         {

@@ -12,7 +12,7 @@ using VRageMath;
 
 namespace IndustrialSystems.Shared.Blocks
 {
-    public class ConveyorMerger : ISBlock<IMyCubeBlock>, IItemConsumer, IItemProducer, IConveyorJunction
+    public class ConveyorMerger : Block<IMyCubeBlock>, IItemConsumer, IItemProducer, IConveyorJunction
     {
         public ConveyorDefinition.ConveyorDef MergerDef;
         public ConveyorLine[] Incoming;

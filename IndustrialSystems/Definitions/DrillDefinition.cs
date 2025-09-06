@@ -10,7 +10,6 @@ namespace IndustrialSystems.Definitions
 {
     public class DrillDefinition : Definition
     {
-        public NameDef Base;
         public MachineInventoryDef MachineInventory;
         public DrillBatchDef DrillBatches;
         public VoxelCheckDef DrillVoxelChecks;
@@ -74,6 +73,10 @@ namespace IndustrialSystems.Definitions
             /// Number of downward cube voxel checks
             /// </summary>
             public int DownwardVoxelCheckSizeAmount;
+            /// <summary>
+            /// If true, uses natural gravity if possible rather than block down for the downard check direction
+            /// </summary>
+            public bool UseNaturalGravityForDown;
 
             public object[] ConvertToObjectArray()
             {
@@ -83,6 +86,7 @@ namespace IndustrialSystems.Definitions
                     DownwardsVoxelCheckSize,
                     DownwardVoxelCheckSizeInterval,
                     DownwardVoxelCheckSizeAmount,
+                    UseNaturalGravityForDown,
                 };
             }
 
@@ -94,6 +98,7 @@ namespace IndustrialSystems.Definitions
                     DownwardsVoxelCheckSize = (float)data[1],
                     DownwardVoxelCheckSizeInterval = (float)data[2],
                     DownwardVoxelCheckSizeAmount = (int)data[3],
+                    UseNaturalGravityForDown = (bool)data[4]
                 };
             }
         }

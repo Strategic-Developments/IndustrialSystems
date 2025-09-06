@@ -10,7 +10,6 @@ namespace IndustrialSystems.Definitions
 {
     public class OutputCargoDefinition : Definition
     {
-        public NameDef Base;
         public override object[] ConvertToObjectArray()
         {
             return new object[] {

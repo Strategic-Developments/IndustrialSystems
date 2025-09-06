@@ -71,6 +71,7 @@ namespace ISDefinitions
                 DownwardsVoxelCheckSize = 250,
                 DownwardVoxelCheckSizeAmount = 1,
                 DownwardVoxelCheckSizeInterval = 60,
+                UseNaturalGravityForDown = true,
             },
         };
     }

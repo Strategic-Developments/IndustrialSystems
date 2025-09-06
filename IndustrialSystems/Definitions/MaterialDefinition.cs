@@ -12,7 +12,6 @@ namespace IndustrialSystems.Definitions
 {
     public class MaterialDefinition : Definition, IEquatable<MaterialDefinition>
     {
-        public NameDef Base;
         public MaterialDef Material;
         public struct MaterialDef : IPackagable
         {

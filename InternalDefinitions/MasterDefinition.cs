@@ -7,12 +7,11 @@ using VRage.Game.Components;
 
 namespace ISDefinitions
 {
-    [MySessionComponentDescriptor(MyUpdateOrder.NoUpdate, Priority = int.MinValue /* DO NOT MODIFY PRIORITY HERE!!!!!*/)]
-    public partial class Definitions : MySessionComponentBase
+    public partial class Definitions
     {
-        public override void Init(MyObjectBuilder_SessionComponent ignore)
+        public Defs GetDefs()
         {
-            foreach (var definition in new Defs
+            return new Defs
             {
                 // put all block definitions here
 
@@ -30,10 +29,7 @@ namespace ISDefinitions
 
                 // don't modify below here
 
-            })
-            {
-                MyAPIGateway.Utilities.SendModMessage(MessageHandlerId, definition.ConvertToObjectArray());
-            }
+            };
         }
     }
 }

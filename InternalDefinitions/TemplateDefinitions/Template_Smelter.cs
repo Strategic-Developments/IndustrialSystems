@@ -52,7 +52,7 @@ namespace ISDefinitions
             },
             BatchJob = new BatchJobDef
             {
-                BatchAmount = 100,
+                BatchAmount = 5,
                 BatchTimeTicks = 60,
             },
             SmelterStats = new SmelterOreMultDef

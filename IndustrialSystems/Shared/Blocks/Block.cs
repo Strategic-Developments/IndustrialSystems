@@ -7,15 +7,16 @@ using System.Text;
 using System.Threading.Tasks;
 using VRage.Game.ModAPI;
 using VRage.ModAPI;
+using VRageMath;
 
 namespace IndustrialSystems.Shared.Blocks
 {
-    public class ISBlock<TBlock> : IIndustrialSystemMachine where TBlock : IMyCubeBlock
+    public class Block<TBlock> : IIndustrialSystemMachine where TBlock : IMyCubeBlock
     {
         public readonly TBlock Self;
         public IndustrialSystem ParentSystem;
 
-        public ISBlock(TBlock Self, IndustrialSystem ParentSystem)
+        public Block(TBlock Self, IndustrialSystem ParentSystem)
         {
             this.Self = Self;
             this.ParentSystem = ParentSystem;
@@ -23,6 +24,11 @@ namespace IndustrialSystems.Shared.Blocks
         public virtual void Close()
         {
             
+        }
+
+        public Vector3D GetPosition()
+        {
+            return Self.GetPosition();
         }
     }
 }

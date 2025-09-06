@@ -12,7 +12,7 @@ using static IndustrialSystems.Definitions.DefinitionConstants;
 
 namespace IndustrialSystems.Shared.Blocks
 {
-    public class ResourceModifier : ISBlock<IMyFunctionalBlock>, IItemConsumer, IItemProducer, IUpdateable
+    public class ResourceModifier : Block<IMyFunctionalBlock>, IItemConsumer, IItemProducer, IUpdateable
     {
         public readonly ResourceModifierDefinition Definition;
 

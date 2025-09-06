@@ -2,6 +2,7 @@
 using IndustrialSystems.Shared.Blocks;
 using IndustrialSystems.Shared.Interfaces;
 using IndustrialSystems.Utilities;
+using Sandbox.ModAPI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,23 +16,27 @@ namespace IndustrialSystems.Shared
     public class ConveyorLine : IIndustrialSystemMachine
     {
         public ushort Frequency;
+        public IndustrialSystem parentSystem;
 
         public IIndustrialSystemMachine Destination;
+        public Vector3I DestinationPos;
         public IIndustrialSystemMachine Start;
+        public Vector3I StartPos;
 
         public List<IMyCubeBlock> Path;
         public List<ConveyorItem> Items;
 
         public ushort DistanceToInsertAtStart;
 
-        public ConveyorLine(ushort frequency, List<IMyCubeBlock> blocks)
+        public ConveyorLine(ushort frequency, List<IMyCubeBlock> blocks, IndustrialSystem parentSystem)
         {
             Frequency = frequency;
             Path = blocks;
             Items = new List<ConveyorItem>();
 
             DistanceToInsertAtStart = (ushort)(frequency * blocks.Count);
-            ComputeNeighbors();
+            this.parentSystem = parentSystem;
+            RecomputeNeighbors();
         }
 
         public void Close()
@@ -44,9 +49,11 @@ namespace IndustrialSystems.Shared
             {
                 ((ConveyorLine)Destination).Start = null;
             }
+            Path = null;
+            Items = null;
         }
 
-        public void ComputeNeighbors()
+        public void RecomputeNeighbors()
         {
             if (Path.Count == 0)
                 return;
@@ -57,14 +64,14 @@ namespace IndustrialSystems.Shared
             ConveyorDefinition startDef = (ConveyorDefinition)Config.I.BlockDefinitions[startConv.BlockDefinition.SubtypeId];
             ConveyorDefinition endDef = (ConveyorDefinition)Config.I.BlockDefinitions[endConv.BlockDefinition.SubtypeId];
 
-            Vector3I transformedStartVector = startConv.TransformVector(startDef.Conveyors.Connections[0]);
-            Vector3I transformedEndVector = endConv.TransformVector(endDef.Conveyors.Connections[1]);
+            StartPos = startConv.TransformVector(endDef.Conveyors.Connections[1]);
+            DestinationPos = endConv.TransformVector(startDef.Conveyors.Connections[0]);
 
-            IMySlimBlock startBlock = startConv.CubeGrid.GetCubeBlock(transformedStartVector);
-            IMySlimBlock endBlock = startConv.CubeGrid.GetCubeBlock(transformedEndVector);
+            IMySlimBlock startBlock = startConv.CubeGrid.GetCubeBlock(StartPos);
+            IMySlimBlock endBlock = startConv.CubeGrid.GetCubeBlock(DestinationPos);
 
             IIndustrialSystemMachine otherMachine;
-            if (startBlock?.FatBlock != null && IndustrialSystemManager.I.AllMachines.TryGetValue(startBlock.FatBlock.EntityId, out otherMachine))
+            if (startBlock?.FatBlock != null && parentSystem.AllMachines.TryGetValue(startBlock.FatBlock.EntityId, out otherMachine))
             {
                 if (otherMachine is IConveyorJunction)
                 {
@@ -78,10 +85,13 @@ namespace IndustrialSystems.Shared
                 }
                 else
                 {
-                    Start = otherMachine;
+                    if (!(otherMachine is ConveyorLine))
+                        Start = otherMachine;
 
-                    if (otherMachine is ConveyorLine)
+                    if (otherMachine is ConveyorLine &&
+                        ((ConveyorLine)otherMachine).DestinationPos == (startConv.Min + startConv.Max) / 2)
                     {
+                        Start = otherMachine;
                         ((ConveyorLine)otherMachine).Destination = this;
                     }
 
@@ -91,7 +101,8 @@ namespace IndustrialSystems.Shared
                 }
             }
 
-            if (endBlock?.FatBlock != null && IndustrialSystemManager.I.AllMachines.TryGetValue(endBlock.FatBlock.EntityId, out otherMachine))
+            if (endBlock?.FatBlock != null && parentSystem.AllMachines
+                .TryGetValue(endBlock.FatBlock.EntityId, out otherMachine))
             {
                 if (otherMachine is IConveyorJunction)
                 {
@@ -105,10 +116,13 @@ namespace IndustrialSystems.Shared
                 }
                 else
                 {
-                    Destination = otherMachine;
+                    if (!(otherMachine is ConveyorLine))
+                        Destination = otherMachine;
 
-                    if (otherMachine is ConveyorLine)
+                    if (otherMachine is ConveyorLine &&
+                        ((ConveyorLine)otherMachine).StartPos == (endConv.Min + endConv.Max) / 2)
                     {
+                        Destination = otherMachine;
                         ((ConveyorLine)otherMachine).Start = this;
                     }
                     if (IndustrialSystemsSessionComp.I.DebugLevel >= 1)
@@ -116,7 +130,13 @@ namespace IndustrialSystems.Shared
                 }
             }
         }
+        public Vector3D GetPosition()
+        {
+            if (Path.Count == 0)
+                return Vector3D.Zero;
 
-        
+            return Path[0].GetPosition();
+        }
+
     }
 }

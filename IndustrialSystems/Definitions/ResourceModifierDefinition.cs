@@ -12,7 +12,6 @@ namespace IndustrialSystems.Definitions
     using TerminalControlText = MyTuple<string, string, string>;
     public class ResourceModifierDefinition : Definition
     {
-        public NameDef Base;
         public MachineInventoryDef MachineInventory;
         public BatchJobDef BatchJob;
         public ItemModifierDef Modifier;

@@ -129,17 +129,17 @@
 			<EdgeType>Light</EdgeType>
 			<BuildTimeSeconds>60</BuildTimeSeconds>
 			<DisassembleRatio>5</DisassembleRatio>
-			<Center x="1" y="1" z="3" />
+			<Center x="1" y="1" z="1" />
 			<ResourceSinkGroup>Defense</ResourceSinkGroup>
 			<InventorySize>
 				<X>0.5</X>
 				<Y>0.5</Y>
 				<Z>0.5</Z>
 			</InventorySize>
-			<SensorRadius>4</SensorRadius>
-			<SensorOffset>3</SensorOffset>
-			<CutOutRadius>6</CutOutRadius>
-			<CutOutOffset>3</CutOutOffset>
+			<SensorRadius>1</SensorRadius>
+			<SensorOffset>1</SensorOffset>
+			<CutOutRadius>1</CutOutRadius>
+			<CutOutOffset>1</CutOutOffset>
 			<CounterRotatingSubparts>
 				<string>Models\Cubes\Large\PrototechDrill_Mid.mwm</string>
 			</CounterRotatingSubparts>

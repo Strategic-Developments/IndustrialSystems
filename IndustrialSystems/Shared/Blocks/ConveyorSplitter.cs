@@ -12,7 +12,7 @@ using VRageMath;
 
 namespace IndustrialSystems.Shared.Blocks
 {
-    public class ConveyorSplitter : ISBlock<IMyCubeBlock>, IItemConsumer, IItemProducer, IConveyorJunction
+    public class ConveyorSplitter : Block<IMyCubeBlock>, IItemConsumer, IItemProducer, IConveyorJunction
     {
         public ConveyorDefinition.ConveyorDef SplitterDef;
         public ConveyorLine Incoming;

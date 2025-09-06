@@ -11,7 +11,7 @@ using VRage.Game.ModAPI;
 
 namespace IndustrialSystems.Shared.Blocks
 {
-    public class Smelter : ISBlock<IMyFunctionalBlock>, IItemConsumer, IItemProducer, IUpdateable
+    public class Smelter : Block<IMyFunctionalBlock>, IItemConsumer, IItemProducer, IUpdateable
     {
         public readonly SmelterDefinition Definition;
 
@@ -20,7 +20,7 @@ namespace IndustrialSystems.Shared.Blocks
         public InventoryItem OutputItem;
 
         public int NextItemCounter;
-
+        private int OutputBatchNum;
         public Smelter(SmelterDefinition definition, IMyFunctionalBlock self, IndustrialSystem parentSystem) : base (self, parentSystem)
         {
             Definition = definition;
@@ -31,12 +31,17 @@ namespace IndustrialSystems.Shared.Blocks
             Mask = new ResourceVector(definition.SmelterStats.SmelterOreMultipliers, definition.SmelterStats.DefaultOreMultiplier);
 
             Self.AppendingCustomInfo += CustomInfo;
+            NextItemCounter = Definition.BatchJob.BatchTimeTicks;
         }
         private void CustomInfo(IMyTerminalBlock block, StringBuilder builder)
         {
             builder.Append($"\nInput Inventory Information:\n");
+            if (InputItem.Amount > Definition.BatchJob.BatchAmount)
+            {
+                builder.Append($"{Definition.BatchJob.BatchTimeTicks - NextItemCounter}/{Definition.BatchJob.BatchTimeTicks} ({(1 - (float)NextItemCounter / Definition.BatchJob.BatchTimeTicks) * 100:##.##}%) until next batch of items.\n");
+            }
             InputItem.AppendInventoryInformation(builder);
-            builder.Append($"Output Inventory Information:\n");
+            builder.Append($"\nOutput Inventory Information:\n");
             OutputItem.AppendInventoryInformation(builder);
         }
 
@@ -46,7 +51,8 @@ namespace IndustrialSystems.Shared.Blocks
         }
         public void Update()
         {
-            if (InputItem.Amount > Definition.BatchJob.BatchAmount)
+            MyAPIGateway.Utilities.ShowNotification($"smelter {NextItemCounter}", 1);
+            if (InputItem.Amount >= Definition.BatchJob.BatchAmount)
             {
                 NextItemCounter--;
 
@@ -54,7 +60,8 @@ namespace IndustrialSystems.Shared.Blocks
                 {
                     NextItemCounter = Definition.BatchJob.BatchTimeTicks;
 
-                    OutputItem.Amount += Definition.BatchJob.BatchAmount;
+                    OutputItem.Amount += OutputBatchNum;
+                    InputItem.Amount -= Definition.BatchJob.BatchAmount;
                 }
             }
         }
@@ -65,14 +72,17 @@ namespace IndustrialSystems.Shared.Blocks
             OutputItem.Item.Type = DefinitionConstants.ItemType.Ingot;
 
             var composition = InputItem.Item.Composition.Copy();
-            composition.ElementMultiply(Mask);
+            MultiplyAndDiscard(composition, Mask, Definition.SmelterStats.MinimumOreRequired);
+            float multiplier = composition.SumNormalize();
+
+            OutputBatchNum = (int)(Math.Floor(Definition.BatchJob.BatchAmount * multiplier));
 
             OutputItem.Item.Composition = composition;
         }
 
         bool IItemConsumer.CanAcceptItem(IIndustrialSystemMachine machineFrom, Item item)
         {
-            return (InputItem.Amount == 0 && item.Type == DefinitionConstants.ItemType.Ore) || item.Equals(InputItem.Item);
+            return (InputItem.Amount == 0 && item.Type == DefinitionConstants.ItemType.Ore) || (item.Equals(InputItem.Item) && InputItem.Amount <= Definition.MachineInventory.MaxItemsInInventory);
         }
 
         void IItemConsumer.AcceptItem(Item item)
@@ -100,6 +110,21 @@ namespace IndustrialSystems.Shared.Blocks
             item = OutputItem.Item;
             OutputItem.Amount--;
             return true;
+        }
+
+        public static void MultiplyAndDiscard(ResourceVector resources, ResourceVector other, float cutoff)
+        {
+            for (int i = 0; i < ResourceVector.Map.Count; i++)
+            {
+                if (resources.Vector[i] > cutoff)
+                {
+                    resources.Vector[i] = resources.Vector[i] * other.Vector[i];
+                }
+                else
+                {
+                    resources.Vector[i] = 0;
+                }
+            }
         }
     }
 }

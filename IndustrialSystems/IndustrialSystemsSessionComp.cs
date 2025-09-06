@@ -43,11 +43,12 @@ using static IndustrialSystems.Definitions.DefinitionConstants;
 using VRage.Game.ObjectBuilders.Definitions;
 using ModularAssemblies;
 using ModularAssemblies.Communication;
+using Sandbox.Game.World;
 
 namespace IndustrialSystems
 {
-    using HiAristeas = DefinitionDefs.ModularDefinitionContainer;
-    using IHopeYouLikeWhatIveDone = DefinitionDefs.ModularPhysicalDefinition;
+    using ModularDefinitions = DefinitionDefs.ModularDefinitionContainer;
+    using ModularPhysicalDef = DefinitionDefs.ModularPhysicalDefinition;
     [MySessionComponentDescriptor(MyUpdateOrder.BeforeSimulation, Priority = 0)]
     public class IndustrialSystemsSessionComp : MySessionComponentBase
     {
@@ -57,22 +58,21 @@ namespace IndustrialSystems
         public int DebugLevel = 2;
         public override void LoadData()
         {
-            // todo: get a new one
             StorageGuid = new Guid("75afa715-498d-4b33-a486-ccc05aa364b9");
-            
-            I = this;
 
             IndustrialSystemManager.Load();
             Network.Load();
-            Config.Load();
             ChatCommands.Load();
+            Config.Load();
+            I = this;
+            MyLog.Default.WriteLine($"IndustrialSystemsSessionComp registering message handler.");
+            MyAPIUtilities.Static.RegisterMessageHandler(MessageHandlerId, OnModMessageRecieved);
+            MyAPIUtilities.Static.SendModMessage(MessageHandlerId, DefinitionSendSignal);
 
             Network.OnMessageReceived += OnNetworkMessageRecieved;
-            MyAPIGateway.Utilities.RegisterMessageHandler(MessageHandlerId, OnModMessageRecieved);
 
             ModularApi = new ModularDefinitionApi();
             ModularApi.Init(ModContext, null);
-            
         }
         public override void Init(MyObjectBuilder_SessionComponent sessionComponent)
         {
@@ -83,6 +83,7 @@ namespace IndustrialSystems
 
             Dictionary<string, Dictionary<Vector3I, string[]>> AllowedConnections = new Dictionary<string, Dictionary<Vector3I, string[]>>();
 
+            /*
             foreach (var blockdef in Config.I.BlockDefinitions.Values)
             {
                 if (blockdef is ConveyorDefinition)
@@ -98,11 +99,11 @@ namespace IndustrialSystems
             }
 
 
-            ModularApi.RegisterDefinitions(new HiAristeas
+            ModularApi.RegisterDefinitions(new ModularDefinitions
             {
                 PhysicalDefs = new[]
                 {
-                    new IHopeYouLikeWhatIveDone
+                    new ModularPhysicalDef
                     {
                         // Unique name of the definition.
                         Name = "IndustrialSystem",
@@ -137,6 +138,7 @@ namespace IndustrialSystems
                     }
                 }
             });
+            */
         }
         public override void BeforeStart()
         {
@@ -145,6 +147,8 @@ namespace IndustrialSystems
         // Priority should ensure these are all called between LoadData and Init
         private void OnModMessageRecieved(object obj)
         {
+            MyLog.Default.WriteLine($"IndustrialSystemsSessionComp called with {obj}");
+
             if (obj is object[])
             {
                 object[] objects = (object[])obj;
@@ -189,6 +193,15 @@ namespace IndustrialSystems
                         var cdef = ConveyorDefinition.ConvertFromObjectArray(objects);
                         Config.I.BlockDefinitions.Add(cdef.Base.SubtypeId, cdef);
                         break;
+                }
+            }
+            else if (obj is ushort)
+            {
+                ushort signal = (ushort)obj;
+
+                if (signal == ReadyToSendDefinitions)
+                {
+                    MyAPIUtilities.Static.SendModMessage(MessageHandlerId, DefinitionSendSignal);
                 }
             }
         }
